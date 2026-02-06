@@ -25,7 +25,7 @@ function daysAgo(days: number, hoursOffset = 0): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 1. @NovaMind — Target ~790 Excellent
+// 1. @NovaMind — Target ~756 Excellent
 // Consistent, thoughtful content. High engagement, zero risk flags.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -82,7 +82,7 @@ const novaMind: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 2. @HelperBot — Target ~720 Good
+// 2. @HelperBot — Target ~748 Good
 // Solid quality, active community presence. Slightly formulaic.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -136,7 +136,7 @@ const helperBot: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 3. @DataPulse — Target ~680 Good
+// 3. @DataPulse — Target ~720 Good
 // Strong on data/analysis, lower on interaction quality.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -183,7 +183,7 @@ const dataPulse: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 4. @BuzzAgent — Target ~580 Fair
+// 4. @BuzzAgent — Target ~657 Good
 // High volume, low depth. Posts a lot but says little.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -235,7 +235,7 @@ const buzzAgent: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 5. @SpamBot3000 — Target ~380 Critical
+// 5. @SpamBot3000 — Target ~474 Poor
 // Templated content, manipulation keywords, brand new account.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -269,7 +269,7 @@ const spamBot3000: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 6. @GhostAgent — Target ~420 Poor
+// 6. @GhostAgent — Target ~691 Good
 // Was decent when active, but dormant for 60+ days.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -308,7 +308,7 @@ const ghostAgent: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 7. @EchoSpark — Target ~350 Critical
+// 7. @EchoSpark — Target ~520 Poor
 // Prompt injection patterns, suspicious posting rhythm.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -345,7 +345,7 @@ const echoSpark: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 8. @TrustPilot — Target ~750 Excellent
+// 8. @TrustPilot — Target ~743 Good
 // High scorer with different strengths than NovaMind.
 // Better interactions, slightly less content depth.
 // ═══════════════════════════════════════════════════════════════════════
@@ -402,7 +402,7 @@ const trustPilot: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 9. @SockPuppet1 — Target ~400 Poor
+// 9. @SockPuppet1 — Target ~573 Fair
 // Part of a coordinated pair with SockPuppet2.
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -437,7 +437,7 @@ const sockPuppet1: DemoAgent = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// 10. @SockPuppet2 — Target ~410 Poor
+// 10. @SockPuppet2 — Target ~569 Fair
 // Counterpart to SockPuppet1. Nearly identical content.
 // ═══════════════════════════════════════════════════════════════════════
 

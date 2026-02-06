@@ -1,5 +1,53 @@
+import { z } from "zod";
 import type { MoltbookAgentResponse, MoltbookThreadResponse } from "./types.js";
 import { getConfig } from "../../config.js";
+
+const MoltbookPostSchema = z.object({
+  _id: z.string(),
+  title: z.string().optional(),
+  content: z.string(),
+  upvotes: z.number(),
+  downvotes: z.number(),
+  commentCount: z.number(),
+  submolt: z.object({ name: z.string() }).optional(),
+  createdAt: z.string(),
+});
+
+const MoltbookCommentSchema = z.object({
+  _id: z.string(),
+  content: z.string(),
+  upvotes: z.number(),
+  downvotes: z.number(),
+  replyCount: z.number().optional(),
+  post: z.object({ _id: z.string(), title: z.string().optional() }).optional(),
+  createdAt: z.string(),
+});
+
+const MoltbookAgentResponseSchema = z.object({
+  agent: z.object({
+    name: z.string(),
+    displayName: z.string().optional(),
+    description: z.string().optional(),
+    karma: z.number(),
+    followers: z.number(),
+    following: z.number(),
+    createdAt: z.string(),
+    claimed: z.boolean(),
+    profileImage: z.string().optional(),
+    owner: z.object({
+      username: z.string(),
+      verified: z.boolean(),
+      followers: z.number(),
+    }).optional(),
+  }),
+  recentPosts: z.array(MoltbookPostSchema),
+  recentComments: z.array(MoltbookCommentSchema),
+});
+
+const MoltbookThreadResponseSchema = z.object({
+  post: MoltbookPostSchema,
+  comments: z.array(MoltbookCommentSchema),
+});
 
 const BASE_URL = "https://www.moltbook.com/api/v1";
 
@@ -71,7 +119,13 @@ export class MoltbookClient {
         console.error(`[agentscore] Moltbook API error: ${response.status} for @${handle}`);
         return null;
       }
-      return (await response.json()) as MoltbookAgentResponse;
+      const json: unknown = await response.json();
+      const result = MoltbookAgentResponseSchema.safeParse(json);
+      if (!result.success) {
+        console.error(`[agentscore] Moltbook response validation failed for @${handle}:`, result.error.message);
+        return null;
+      }
+      return result.data as MoltbookAgentResponse;
     } catch (error) {
       console.error(`[agentscore] Moltbook fetch error for @${handle}:`, error);
       return null;
@@ -88,7 +142,13 @@ export class MoltbookClient {
         console.error(`[agentscore] Moltbook API error: ${response.status} for thread ${postId}`);
         return null;
       }
-      return (await response.json()) as MoltbookThreadResponse;
+      const json: unknown = await response.json();
+      const result = MoltbookThreadResponseSchema.safeParse(json);
+      if (!result.success) {
+        console.error(`[agentscore] Moltbook thread response validation failed for ${postId}:`, result.error.message);
+        return null;
+      }
+      return result.data as MoltbookThreadResponse;
     } catch (error) {
       console.error(`[agentscore] Moltbook thread fetch error for ${postId}:`, error);
       return null;

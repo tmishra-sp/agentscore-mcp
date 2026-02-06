@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type {
   GitHubUser,
   GitHubRepo,
@@ -10,6 +11,51 @@ import type {
   CacheEntry,
 } from "./types.js";
 import { getConfig } from "../../config.js";
+
+const GitHubUserSchema = z.object({
+  login: z.string(),
+  name: z.string().nullable(),
+  bio: z.string().nullable(),
+  company: z.string().nullable(),
+  blog: z.string().nullable(),
+  type: z.enum(["User", "Organization", "Bot"]),
+  followers: z.number(),
+  following: z.number(),
+  public_repos: z.number(),
+  created_at: z.string(),
+});
+
+const GitHubReactionsSchema = z.object({
+  "+1": z.number(),
+  "-1": z.number(),
+  laugh: z.number(),
+  hooray: z.number(),
+  confused: z.number(),
+  heart: z.number(),
+  rocket: z.number(),
+  eyes: z.number(),
+});
+
+const GitHubIssueSchema = z.object({
+  id: z.number(),
+  number: z.number(),
+  title: z.string(),
+  body: z.string().nullable(),
+  state: z.string(),
+  comments: z.number(),
+  created_at: z.string(),
+  user: z.object({ login: z.string(), type: z.string() }),
+  reactions: GitHubReactionsSchema,
+  html_url: z.string(),
+});
+
+const GitHubCommentSchema = z.object({
+  id: z.number(),
+  body: z.string(),
+  created_at: z.string(),
+  user: z.object({ login: z.string(), type: z.string() }),
+  reactions: GitHubReactionsSchema,
+});
 
 const BASE_URL = "https://api.github.com";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -97,7 +143,7 @@ export class GitHubClient {
     throw new Error("Max retries exceeded");
   }
 
-  private async get<T>(url: string): Promise<T | null> {
+  private async get<T>(url: string, schema?: z.ZodType<T>): Promise<T | null> {
     const cached = this.getCached<T>(url);
     if (cached !== undefined) return cached;
 
@@ -109,7 +155,18 @@ export class GitHubClient {
         console.error(`[agentscore] GitHub API error: ${response.status} for ${url}`);
         return null;
       }
-      const data = (await response.json()) as T;
+      const json: unknown = await response.json();
+      let data: T;
+      if (schema) {
+        const result = schema.safeParse(json);
+        if (!result.success) {
+          console.error(`[agentscore] GitHub response validation failed for ${url}:`, result.error.message);
+          return null;
+        }
+        data = result.data;
+      } else {
+        data = json as T;
+      }
       this.setCache(url, data);
       return data;
     } catch (error) {
@@ -119,7 +176,7 @@ export class GitHubClient {
   }
 
   async fetchUser(username: string): Promise<GitHubUser | null> {
-    return this.get<GitHubUser>(`${BASE_URL}/users/${encodeURIComponent(username)}`);
+    return this.get<GitHubUser>(`${BASE_URL}/users/${encodeURIComponent(username)}`, GitHubUserSchema);
   }
 
   async fetchUserRepos(username: string): Promise<GitHubRepo[]> {
@@ -146,7 +203,8 @@ export class GitHubClient {
 
   async fetchIssue(owner: string, repo: string, number: number): Promise<GitHubIssue | null> {
     return this.get<GitHubIssue>(
-      `${BASE_URL}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues/${number}`
+      `${BASE_URL}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues/${number}`,
+      GitHubIssueSchema,
     );
   }
 
@@ -161,7 +219,7 @@ export class GitHubClient {
       const url =
         `${BASE_URL}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}` +
         `/issues/${number}/comments?per_page=100&page=${page}`;
-      const comments = await this.get<GitHubComment[]>(url);
+      const comments = await this.get<GitHubComment[]>(url, z.array(GitHubCommentSchema));
       if (!comments || comments.length === 0) break;
       allComments.push(...comments);
     }

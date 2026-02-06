@@ -1,3 +1,5 @@
+import path from "node:path";
+
 export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
   moltbookApiKey: string;
@@ -16,8 +18,14 @@ export function loadConfig(): Config {
   const dataPath = process.env.AGENTSCORE_DATA_PATH || "";
   const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://agentscore.vercel.app";
 
-  if (dataPath && dataPath.includes("..")) {
-    throw new Error("AGENTSCORE_DATA_PATH must not contain '..' segments.");
+  if (dataPath) {
+    // Normalize and check for '..' segments to prevent path traversal.
+    // path.normalize resolves redundant separators and './.' but preserves '..',
+    // so we can reliably detect traversal attempts in any form.
+    const normalized = path.normalize(dataPath);
+    if (normalized.split(path.sep).includes("..")) {
+      throw new Error("AGENTSCORE_DATA_PATH must not contain '..' segments.");
+    }
   }
 
   let siteUrl = rawSiteUrl.replace(/\/$/, "");

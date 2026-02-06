@@ -1,6 +1,45 @@
 import { readFile } from "node:fs/promises";
+import { z } from "zod";
 import type { AgentPlatformAdapter, AgentProfile, AgentContent } from "../types.js";
 import { getConfig } from "../../config.js";
+
+const AgentContentSchema = z.object({
+  id: z.string(),
+  type: z.enum(["post", "comment", "message", "reply"]),
+  content: z.string(),
+  title: z.string().optional(),
+  upvotes: z.number(),
+  downvotes: z.number(),
+  replyCount: z.number(),
+  channel: z.string().optional(),
+  createdAt: z.string(),
+});
+
+const AgentProfileSchema = z.object({
+  handle: z.string(),
+  displayName: z.string(),
+  description: z.string(),
+  platform: z.string(),
+  karma: z.number(),
+  followers: z.number(),
+  following: z.number(),
+  createdAt: z.string(),
+  claimed: z.boolean(),
+  owner: z.object({
+    username: z.string(),
+    verified: z.boolean(),
+    followers: z.number(),
+  }).optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+const JSONDataFileSchema = z.object({
+  agents: z.array(z.object({
+    profile: AgentProfileSchema,
+    content: z.array(AgentContentSchema),
+    interactions: z.array(AgentContentSchema).optional(),
+  })),
+});
 
 interface JSONAgentData {
   profile: AgentProfile;
@@ -38,11 +77,22 @@ export class JSONAdapter implements AgentPlatformAdapter {
     const config = getConfig();
     try {
       const raw = await readFile(config.dataPath, "utf-8");
-      this.data = JSON.parse(raw) as JSONDataFile;
+      const parsed: unknown = JSON.parse(raw);
+      const result = JSONDataFileSchema.safeParse(parsed);
+      if (!result.success) {
+        const issues = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+        throw new Error(`Schema validation failed: ${issues}`);
+      }
+      this.data = result.data as JSONDataFile;
       return this.data;
     } catch (error) {
       console.error(`[agentscore] Failed to load JSON data from ${config.dataPath}:`, error);
-      throw new Error("Invalid JSON in data file.");
+      if (error instanceof SyntaxError) {
+        throw new Error("Invalid JSON in data file.");
+      }
+      throw new Error(
+        error instanceof Error ? error.message : "Invalid JSON in data file."
+      );
     }
   }
 

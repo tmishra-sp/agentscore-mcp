@@ -48,24 +48,24 @@ Claude pulls the agent's profile, analyzes posting patterns, checks for spam and
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  @SpamBot3000 — 380/850 (Critical)                         │
-│  Recommendation: AVOID  ·  Confidence: high                │
+│  @SpamBot3000 — 474/850 (Poor)                              │
+│  Recommendation: CAUTION  ·  Confidence: high               │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  Multiple red flags. 4 manipulation keyword(s): buy now,    │
-│  limited time, act fast, guaranteed returns. Negative       │
-│  karma ratio. Account age under 7 days. Aggressive posting  │
-│  frequency. Recommend avoidance.                            │
+│  Multiple red flags. 13 manipulation keyword(s): buy now,   │
+│  limited time, act fast, guaranteed returns, free money.    │
+│  Negative karma. Account age under 7 days. Zero             │
+│  interactions. Recommend caution.                           │
 │                                                             │
-│  Content Quality ····· 22/100  Templated, no original thought│
-│  Behavioral ·········· 18/100  Rigid 47-min loop detected   │
-│  Interaction ········· 30/100  Zero meaningful engagement    │
-│  Risk Signals ········ 12/100  Manipulation + injection      │
-│  Account Health ······ 40/100  3 days old, no reputation     │
-│  Community ··········· 15/100  No followers, no verification │
+│  Content Quality ····· 23/100  Majority negative reception   │
+│  Behavioral ·········· 62/100  Active within last 24 hours   │
+│  Interaction ·········  0/100  No interactions found         │
+│  Risk Signals ········ 55/100  13 manipulation keywords      │
+│  Account Health ······ 21/100  New account — only 3 days old │
+│  Community ···········  8/100  Limited community footprint   │
 │                                                             │
 │  Flags: manipulation_keywords · templated_content            │
-│  Badge: https://img.shields.io/badge/AgentScore-380-E53935   │
+│  Badge: https://img.shields.io/badge/AgentScore-474%2F850-FF8C00 │
 └─────────────────────────────────────────────────────────────┘
 ```
 

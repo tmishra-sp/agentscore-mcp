@@ -25,6 +25,7 @@ export class RateLimiter {
    */
   allow(key: string): boolean {
     const now = Date.now();
+    this.pruneExpired(now);
     const bucket = this.buckets.get(key);
     if (!bucket || now - bucket.windowStart >= this.config.windowMs) {
       this.buckets.set(key, { count: 1, windowStart: now });
@@ -35,6 +36,15 @@ export class RateLimiter {
     }
     bucket.count += 1;
     return true;
+  }
+
+  /** Remove expired buckets to prevent unbounded memory growth. */
+  private pruneExpired(now: number): void {
+    for (const [key, bucket] of this.buckets) {
+      if (now - bucket.windowStart >= this.config.windowMs) {
+        this.buckets.delete(key);
+      }
+    }
   }
 
   /**
