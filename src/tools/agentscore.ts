@@ -1,0 +1,149 @@
+import { z } from "zod";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { AgentPlatformAdapter } from "../adapters/types.js";
+import type { AgentScoreResult, ComparisonResult, Confidence } from "../scoring/types.js";
+import { scoreAgent, compareAgents } from "../scoring/engine.js";
+import { ScoreCache } from "../cache/score-cache.js";
+
+const inputSchema = {
+  handles: z
+    .array(z.string().regex(/^[\w-]{1,50}$/, "Handle must be 1-50 alphanumeric/dash/underscore characters"))
+    .min(1)
+    .max(5)
+    .describe("Agent handle(s) to score. 1 for investigation, 2-5 for comparison."),
+  platform: z
+    .enum(["demo", "json", "moltbook", "github"])
+    .optional()
+    .describe("Platform adapter. Default: demo. Options: demo, json, moltbook, github"),
+};
+
+interface AgentScoreError {
+  handle: string;
+  message: string;
+}
+
+interface AgentScoreOutput {
+  agents: AgentScoreResult[];
+  comparison?: ComparisonResult;
+  errors?: AgentScoreError[];
+}
+
+export function registerAgentScoreTool(
+  server: McpServer,
+  getAdapter: (platform?: string) => AgentPlatformAdapter,
+  cache: ScoreCache
+): void {
+  server.tool(
+    "agentscore",
+    "Score 1-5 AI agents for trustworthiness. Returns investigation briefings, comparison verdicts, risk flags, and trust badges. Use for: trust checks, comparisons, verifications, badge generation.",
+    inputSchema,
+    {
+      readOnlyHint: true,
+      openWorldHint: true,
+      idempotentHint: true,
+    },
+    async ({ handles, platform }) => {
+      const adapter = getAdapter(platform);
+      const results: AgentScoreResult[] = [];
+      const errors: AgentScoreError[] = [];
+
+      for (const handle of handles) {
+        try {
+          // Check cache
+          const cached = cache.get(adapter.name, handle);
+          if (cached) {
+            const hoursSince = (Date.now() - new Date(cached.result.scoredAt).getTime()) / (1000 * 60 * 60);
+            let confidence: Confidence;
+            if (hoursSince <= 6) confidence = "high";
+            else if (hoursSince <= 24) confidence = "medium";
+            else confidence = "low";
+
+            results.push({ ...cached.result, confidence });
+            continue;
+          }
+
+          // Fetch fresh data
+          const profile = await adapter.fetchProfile(handle);
+          if (!profile) {
+            errors.push({
+              handle,
+              message: `Agent not found on ${adapter.name}. Handles are case-sensitive.`,
+            });
+            continue;
+          }
+
+          const content = await adapter.fetchContent(handle);
+          const interactions = adapter.fetchInteractions
+            ? await adapter.fetchInteractions(handle)
+            : [];
+
+          const result = scoreAgent(profile, content, interactions, "high");
+          cache.set(adapter.name, handle, result, profile);
+          results.push(result);
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          errors.push({ handle, message: msg });
+        }
+      }
+
+      const output: AgentScoreOutput = { agents: results };
+
+      if (results.length >= 2) {
+        output.comparison = compareAgents(results);
+      }
+
+      if (errors.length > 0) {
+        output.errors = errors;
+      }
+
+      // Build text summary
+      const textParts: string[] = [];
+
+      for (const r of results) {
+        textParts.push(
+          `## @${r.handle} — ${r.score}/850 (${r.tier})\n` +
+            `**Recommendation:** ${r.recommendation} | **Confidence:** ${r.confidence}\n\n` +
+            `${r.briefing}\n\n` +
+            `**Categories:**\n` +
+            r.categories
+              .map((c) => `- ${c.name} (${c.weight}%): ${c.score}/100 — ${c.topSignal}`)
+              .join("\n") +
+            `\n\n` +
+            (r.flags.length > 0
+              ? `**Flags:** ${r.flags.join("; ")}\n\n`
+              : "") +
+            `**Badge:** ${r.badge.shields}\n` +
+            `**Report:** ${r.reportUrl}`
+        );
+      }
+
+      if (errors.length > 0) {
+        textParts.push(
+          `## Errors\n\n` +
+            errors.map((e) => `- @${e.handle}: ${e.message}`).join("\n")
+        );
+      }
+
+      if (output.comparison?.verdict) {
+        textParts.push(`\n## Comparison Verdict\n\n${output.comparison.verdict}`);
+      }
+
+      if (results.length === 0) {
+        return {
+          content: [
+            { type: "text" as const, text: textParts.join("\n\n---\n\n") || "No agents scored." },
+            { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+          ],
+          isError: true,
+        };
+      }
+
+      return {
+        content: [
+          { type: "text" as const, text: textParts.join("\n\n---\n\n") },
+          { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+        ],
+      };
+    }
+  );
+}

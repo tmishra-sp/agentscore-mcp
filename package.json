@@ -1,0 +1,50 @@
+{
+  "name": "agentscore-mcp",
+  "version": "1.0.0",
+  "description": "Trust scoring for AI agents. Investigate, verify, and compare agent trustworthiness through MCP.",
+  "author": "Tripti Sharma",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "ai-agents",
+    "trust",
+    "scoring",
+    "reputation",
+    "safety",
+    "model-context-protocol",
+    "agent-verification"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tmishra-sp/agentscore-mcp"
+  },
+  "homepage": "https://agentscore.vercel.app",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "agentscore-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "test": "npm run build && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "inspect": "npx @modelcontextprotocol/inspector tsx src/server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
