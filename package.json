@@ -33,10 +33,11 @@
     "dev": "tsx src/server.ts",
     "test": "npm run build && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs",
     "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
     "inspect": "npx @modelcontextprotocol/inspector tsx src/server.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "latest",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

@@ -27,7 +27,7 @@
 - [GitHub Adapter](#github-adapter)
 - [Bring Your Own Data (JSON)](#bring-your-own-data-json-adapter)
 - [Build Your Own Adapter](#build-your-own-adapter)
-- [What People Are Using This For](#what-people-are-using-this-for)
+- [Built For (Use Cases)](#built-for-use-cases)
 - [Architecture](#architecture)
 - [Environment Variables](#environment-variables)
 - [Development](#development)
@@ -193,6 +193,8 @@ Ships with four adapters. Build your own in ~50 lines.
 | **JSON** | Score your own agents | Set `AGENTSCORE_ADAPTER=json` + data path |
 | **Moltbook** | Score live agents on moltbook.com | Set `AGENTSCORE_ADAPTER=moltbook` + API key |
 
+Note: `sweep` requires thread participants. Moltbook currently provides thread content but does not return participant profiles, so sweep results may be unavailable on Moltbook.
+
 ---
 
 ## Built-in Demo Agents
@@ -323,17 +325,17 @@ Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts)
 
 ---
 
-## What People Are Using This For
+## Built For (Use Cases)
 
-**Enterprise AI Governance:** A fintech company runs 12 internal agents. Before quarterly audit, the compliance team feeds conversation logs through the JSON adapter. AgentScore surfaces that the compliance-advisor bot has been leaking system prompt fragments in 4 of its last 30 responses. They catch it before the auditor does.
+**Enterprise AI Governance:** Review internal agents before audits. Pipe conversation logs through the JSON adapter to surface prompt leakage, manipulation signals, or erratic behavior.
 
-**Vendor Selection:** Company evaluating 3 chatbot vendors exports sample conversations, compares them — gets a verdict like "Vendor A dominates content quality, but Vendor C has zero manipulation flags. For customer-facing deployment, C is your pick." That verdict goes straight into the procurement deck.
+**Vendor Selection:** Compare multiple vendor bots from sample conversations. Get category winners and an opinionated verdict for procurement decisions.
 
-**Astroturfing Detection:** Five suspicious accounts post glowing reviews within minutes. `sweep` finds 89% content similarity, 4-second response clustering, and account ages under 48 hours. Threat level: COMPROMISED. Evidence for takedown.
+**Astroturfing Detection:** Sweep public threads to detect coordination patterns, suspicious timing, and low-trust amplification.
 
-**Rate My Bot:** Export your Discord bot's chat history, ask "investigate my bot, be brutally honest." Get a briefing that says your bot scores 612 because it repeats the same 3 jokes on rotation. Screenshot it, post "My bot got roasted by another AI" — instant engagement.
+**Rate My Bot:** Evaluate your own agent and identify weak dimensions (content quality, interaction depth, risk signals) with a candid briefing.
 
-**Agent Draft:** Building an AI agent team? Compare 5 candidates side-by-side. AgentScore picks winners per category: "Draft @DraftGenie first — reliable workhorse. Use @ProseAI as your wildcard — brilliant but erratic." People post their draft picks like fantasy football.
+**Agent Draft:** Compare 2–5 candidates side-by-side and pick category leaders for different roles.
 
 ---
 
@@ -377,7 +379,7 @@ Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts)
 | `MOLTBOOK_API_KEY` | For Moltbook | — | Moltbook API key |
 | `AGENTSCORE_DATA_PATH` | For JSON | — | Path to agent data file |
 | `AGENTSCORE_CACHE_TTL` | No | `86400` | Cache TTL in seconds |
-| `AGENTSCORE_RATE_LIMIT_MS` | No | `200` | API rate limit delay (ms) |
+| `AGENTSCORE_RATE_LIMIT_MS` | No | `200` | Moltbook adapter rate limit delay (ms) |
 | `AGENTSCORE_SITE_URL` | No | `https://agentscore.vercel.app` | Web dashboard URL |
 
 ### Behavior Notes

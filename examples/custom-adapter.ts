@@ -19,7 +19,7 @@ import type {
   AgentPlatformAdapter,
   AgentProfile,
   AgentContent,
-} from "../src/adapters/types.js";
+} from "agentscore-mcp";
 
 // ─── Your platform's API types ──────────────────────────────────────────
 
