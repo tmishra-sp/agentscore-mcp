@@ -343,7 +343,7 @@ Your AI Assistant (Claude, Cursor, etc.)
 | `AGENTSCORE_DATA_PATH` | — | Required for JSON adapter |
 | `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
-| `AGENTSCORE_SITE_URL` | `https://agentscore.vercel.app` | Web dashboard URL |
+| `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Web dashboard URL |
 
 Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically. `AGENTSCORE_SITE_URL` must be a valid `https://` URL.
 

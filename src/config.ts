@@ -16,7 +16,7 @@ let _config: Config | null = null;
 export function loadConfig(): Config {
   const adapter = (process.env.AGENTSCORE_ADAPTER || "demo") as Config["adapter"];
   const dataPath = process.env.AGENTSCORE_DATA_PATH || "";
-  const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://agentscore.vercel.app";
+  const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://ai-agent-score.vercel.app";
 
   if (dataPath) {
     // Normalize and check for '..' segments to prevent path traversal.
