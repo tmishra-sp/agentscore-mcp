@@ -84,6 +84,8 @@ That's not canned text. Every briefing is generated from real behavioral data. E
 | _"Score @torvalds on GitHub"_ | `agentscore` | Live GitHub profile analysis |
 | _"Sweep torvalds/linux/issues/1234"_ | `sweep` | Sweep a public GitHub thread for bots |
 
+**Rate limits:** `agentscore` 30/min and `sweep` 10/min per session. Excess calls return a friendly 429-style message.
+
 ---
 
 ## Setup
@@ -267,6 +269,8 @@ export MOLTBOOK_API_KEY=moltbook_sk_your_key_here
 
 Note: `sweep` requires thread participants. Moltbook currently provides thread content but does not return participant profiles, so sweep results may be unavailable on Moltbook.
 
+Adapter limitations are documented in `TRUST.md`.
+
 ### Build Your Own
 
 Implement 3 methods. The scoring engine handles everything else.
@@ -341,7 +345,7 @@ Your AI Assistant (Claude, Cursor, etc.)
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
 | `AGENTSCORE_SITE_URL` | `https://agentscore.vercel.app` | Web dashboard URL |
 
-Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically.
+Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically. `AGENTSCORE_SITE_URL` must be a valid `https://` URL.
 
 ---
 

@@ -31,7 +31,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts",
-    "test": "npm run build && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs",
+    "test": "npm run build && node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "inspect": "npx @modelcontextprotocol/inspector tsx src/server.ts"

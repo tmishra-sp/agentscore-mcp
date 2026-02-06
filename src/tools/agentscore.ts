@@ -4,6 +4,7 @@ import type { AgentPlatformAdapter } from "../adapters/types.js";
 import type { AgentScoreResult, ComparisonResult, Confidence } from "../scoring/types.js";
 import { scoreAgent, compareAgents } from "../scoring/engine.js";
 import { ScoreCache } from "../cache/score-cache.js";
+import { RateLimiter } from "../security/rate-limiter.js";
 
 const inputSchema = {
   handles: z
@@ -28,6 +29,30 @@ interface AgentScoreOutput {
   errors?: AgentScoreError[];
 }
 
+const rateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 30 });
+
+const MAX_ITEMS = 50;
+const MAX_CONTENT_CHARS = 8000;
+const MAX_TOTAL_CHARS = 80_000;
+
+function truncateContent<T extends { content: string }>(items: T[]): T[] {
+  let total = 0;
+  const trimmed: T[] = [];
+  for (const item of items.slice(0, MAX_ITEMS)) {
+    if (!item?.content) continue;
+    const content = item.content.slice(0, MAX_CONTENT_CHARS);
+    total += content.length;
+    if (total > MAX_TOTAL_CHARS) break;
+    trimmed.push({ ...item, content });
+  }
+  return trimmed;
+}
+
+function sanitizeError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error);
+  return msg.replace(/([A-Za-z]:)?[\\/][^ ]+/g, "<redacted-path>");
+}
+
 export function registerAgentScoreTool(
   server: McpServer,
   getAdapter: (platform?: string) => AgentPlatformAdapter,
@@ -42,7 +67,21 @@ export function registerAgentScoreTool(
       openWorldHint: true,
       idempotentHint: true,
     },
-    async ({ handles, platform }) => {
+    async ({ handles, platform }, context) => {
+      const clientKey = context?.sessionId || "anonymous";
+      const rateKey = `${clientKey}:agentscore`;
+      if (!rateLimiter.allow(rateKey)) {
+        const retryIn = Math.ceil(rateLimiter.msUntilReset(rateKey) / 1000);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Rate limit exceeded. Try again in ${retryIn}s.`,
+            },
+          ],
+          isError: true,
+        };
+      }
       const adapter = getAdapter(platform);
       const results: AgentScoreResult[] = [];
       const errors: AgentScoreError[] = [];
@@ -67,21 +106,21 @@ export function registerAgentScoreTool(
           if (!profile) {
             errors.push({
               handle,
-              message: `Agent not found on ${adapter.name}. Handles are case-sensitive.`,
+              message: `Agent not found on ${adapter.name}.`,
             });
             continue;
           }
 
-          const content = await adapter.fetchContent(handle);
+          const content = truncateContent(await adapter.fetchContent(handle));
           const interactions = adapter.fetchInteractions
-            ? await adapter.fetchInteractions(handle)
+            ? truncateContent(await adapter.fetchInteractions(handle))
             : [];
 
           const result = scoreAgent(profile, content, interactions, "high");
           cache.set(adapter.name, handle, result, profile);
           results.push(result);
         } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
+          const msg = sanitizeError(error);
           errors.push({ handle, message: msg });
         }
       }

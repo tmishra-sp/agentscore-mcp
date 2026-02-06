@@ -4,6 +4,7 @@ import type { AgentPlatformAdapter } from "../adapters/types.js";
 import { scoreAgent } from "../scoring/engine.js";
 import { trigramSimilarity } from "../scoring/utils.js";
 import { ScoreCache } from "../cache/score-cache.js";
+import { RateLimiter } from "../security/rate-limiter.js";
 
 const inputSchema = {
   threadId: z
@@ -35,6 +36,30 @@ interface SweepOutput {
   briefing: string;
 }
 
+const rateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 10 });
+
+const MAX_ITEMS = 200;
+const MAX_CONTENT_CHARS = 8000;
+const MAX_TOTAL_CHARS = 160_000;
+
+function truncateContent<T extends { content: string }>(items: T[]): T[] {
+  let total = 0;
+  const trimmed: T[] = [];
+  for (const item of items.slice(0, MAX_ITEMS)) {
+    if (!item?.content) continue;
+    const content = item.content.slice(0, MAX_CONTENT_CHARS);
+    total += content.length;
+    if (total > MAX_TOTAL_CHARS) break;
+    trimmed.push({ ...item, content });
+  }
+  return trimmed;
+}
+
+function sanitizeError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error);
+  return msg.replace(/([A-Za-z]:)?[\\/][^ ]+/g, "<redacted-path>");
+}
+
 export function registerSweepTool(
   server: McpServer,
   getAdapter: (platform?: string) => AgentPlatformAdapter,
@@ -49,7 +74,21 @@ export function registerSweepTool(
       openWorldHint: true,
       idempotentHint: true,
     },
-    async ({ threadId, platform }) => {
+    async ({ threadId, platform }, context) => {
+      const clientKey = context?.sessionId || "anonymous";
+      const rateKey = `${clientKey}:sweep`;
+      if (!rateLimiter.allow(rateKey)) {
+        const retryIn = Math.ceil(rateLimiter.msUntilReset(rateKey) / 1000);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Rate limit exceeded. Try again in ${retryIn}s.`,
+            },
+          ],
+          isError: true,
+        };
+      }
       const adapter = getAdapter(platform);
 
       // Check if adapter supports thread operations
@@ -70,13 +109,13 @@ export function registerSweepTool(
 
       try {
         // 1. Fetch thread content
-        const threadContent = await adapter.fetchThreadContent(threadId);
+        const threadContent = truncateContent(await adapter.fetchThreadContent(threadId));
         if (threadContent.length === 0) {
           return {
             content: [
               {
                 type: "text" as const,
-                text: `Thread '${threadId}' not found on ${adapter.name}.`,
+                text: `Thread not found on ${adapter.name}.`,
               },
             ],
             isError: true,
@@ -90,7 +129,7 @@ export function registerSweepTool(
             content: [
               {
                 type: "text" as const,
-                text: `No participants found for thread '${threadId}' on ${adapter.name}.`,
+                text: `No participants found for thread on ${adapter.name}.`,
               },
             ],
             isError: true,
@@ -110,9 +149,9 @@ export function registerSweepTool(
             score = cached.result.score;
             tier = cached.result.tier;
           } else {
-            const content = await adapter.fetchContent(profile.handle);
+            const content = truncateContent(await adapter.fetchContent(profile.handle));
             const interactions = adapter.fetchInteractions
-              ? await adapter.fetchInteractions(profile.handle)
+              ? truncateContent(await adapter.fetchInteractions(profile.handle))
               : [];
             const result = scoreAgent(profile, content, interactions);
             cache.set(adapter.name, profile.handle, result, profile);
@@ -254,10 +293,10 @@ export function registerSweepTool(
           ],
         };
       } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
+        const msg = sanitizeError(error);
         return {
           content: [
-            { type: "text" as const, text: `Error sweeping thread ${threadId}: ${msg}` },
+            { type: "text" as const, text: `Error sweeping thread: ${msg}` },
           ],
           isError: true,
         };

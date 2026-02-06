@@ -17,6 +17,11 @@ When optional adapters are enabled:
 
 **No data is sent to AgentScore servers, analytics, or third parties. Ever.**
 
+### Rate Limiting
+
+- Tool-level limits: `agentscore` 30/min and `sweep` 10/min per session.
+- Adapter-level throttling: Moltbook uses `AGENTSCORE_RATE_LIMIT_MS`. GitHub respects API rate limit headers and retries on 429s.
+
 ### Data Access
 
 | Location | Access | Purpose |

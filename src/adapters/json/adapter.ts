@@ -42,7 +42,7 @@ export class JSONAdapter implements AgentPlatformAdapter {
       return this.data;
     } catch (error) {
       console.error(`[agentscore] Failed to load JSON data from ${config.dataPath}:`, error);
-      throw new Error(`Invalid JSON in data file: ${config.dataPath}`);
+      throw new Error("Invalid JSON in data file.");
     }
   }
 

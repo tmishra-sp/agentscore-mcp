@@ -13,6 +13,22 @@ let _config: Config | null = null;
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
   const adapter = (process.env.AGENTSCORE_ADAPTER || "demo") as Config["adapter"];
+  const dataPath = process.env.AGENTSCORE_DATA_PATH || "";
+  const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://agentscore.vercel.app";
+
+  if (dataPath && dataPath.includes("..")) {
+    throw new Error("AGENTSCORE_DATA_PATH must not contain '..' segments.");
+  }
+
+  let siteUrl = rawSiteUrl.replace(/\/$/, "");
+  try {
+    const parsed = new URL(siteUrl);
+    if (parsed.protocol !== "https:") {
+      throw new Error("AGENTSCORE_SITE_URL must use https://");
+    }
+  } catch (error) {
+    throw new Error("AGENTSCORE_SITE_URL must be a valid https:// URL.");
+  }
 
   if (adapter === "moltbook" && !process.env.MOLTBOOK_API_KEY) {
     console.error(
@@ -28,7 +44,7 @@ export function loadConfig(): Config {
     );
   }
 
-  if (adapter === "json" && !process.env.AGENTSCORE_DATA_PATH) {
+  if (adapter === "json" && !dataPath) {
     throw new Error(
       "AGENTSCORE_DATA_PATH required when using JSON adapter. Point this to your agent data file."
     );
@@ -41,10 +57,10 @@ export function loadConfig(): Config {
     adapter,
     moltbookApiKey: process.env.MOLTBOOK_API_KEY || "",
     githubToken: process.env.GITHUB_TOKEN || "",
-    dataPath: process.env.AGENTSCORE_DATA_PATH || "",
+    dataPath,
     cacheTtl: Number.isNaN(cacheTtl) ? 86400 : cacheTtl,
     rateLimitMs: Number.isNaN(rateLimitMs) ? 200 : rateLimitMs,
-    siteUrl: (process.env.AGENTSCORE_SITE_URL || "https://agentscore.vercel.app").replace(/\/$/, ""),
+    siteUrl,
   };
 
   return _config;
