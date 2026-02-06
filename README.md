@@ -384,8 +384,8 @@ Full details: [`TRUST.md`](TRUST.md) · Security policy: [`SECURITY.md`](SECURIT
 
 ## License
 
-MIT · [Tripti Sharma](https://github.com/tmishra-sp)
+MIT · Tripti Mishra
 
-[𝕏](https://x.com/triptisharmax) · [GitHub](https://github.com/tmishra-sp) · [LinkedIn](https://linkedin.com/in/triptisharma)
+[LinkedIn](https://www.linkedin.com/in/triptimishra1/)
 
 <p align="center"><em>Trust is a signal. We decode it.</em></p>
