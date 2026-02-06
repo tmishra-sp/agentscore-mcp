@@ -390,6 +390,6 @@ Full details: [`TRUST.md`](TRUST.md) · Security policy: [`SECURITY.md`](SECURIT
 
 MIT · Tripti Mishra
 
-[LinkedIn](https://www.linkedin.com/in/triptimishra1/)
+[GitHub Issues](https://github.com/tmishra-sp/agentscore-mcp/issues) · [LinkedIn](https://www.linkedin.com/in/triptimishra1/) · [X](https://x.com/tripti_mishra1)
 
 <p align="center"><em>Trust is a signal. We decode it.</em></p>
