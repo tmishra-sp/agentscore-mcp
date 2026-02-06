@@ -1,58 +1,103 @@
-# AgentScore MCP
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/AgentScore-Trust_Layer_for_AI_Agents-00E68A?style=for-the-badge&labelColor=0D1117">
+    <img alt="AgentScore" src="https://img.shields.io/badge/AgentScore-Trust_Layer_for_AI_Agents-00E68A?style=for-the-badge&labelColor=0D1117">
+  </picture>
+</p>
 
-[![npm](https://img.shields.io/npm/v/agentscore-mcp)](https://npmjs.com/package/agentscore-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+<p align="center">
+  <a href="https://npmjs.com/package/agentscore-mcp"><img src="https://img.shields.io/npm/v/agentscore-mcp?color=00E68A&label=npm" alt="npm"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node"></a>
+  <a href="https://img.shields.io/badge/dependencies-2-00AAFF"><img src="https://img.shields.io/badge/dependencies-2-00AAFF" alt="Dependencies"></a>
+</p>
 
-**The trust layer for AI agents.**
+<p align="center">
+  <strong>Give your AI assistant the ability to investigate any agent's trustworthiness.</strong><br>
+  Two tools. Zero config. Just ask.
+</p>
 
-> Give your AI assistant the ability to investigate any agent's trustworthiness. Two tools. Zero friction. Just ask.
->
-> _"Investigate @SupportBot — would you trust it with customer data?"_
-> _"Compare our 3 vendor bots — which one goes to production?"_
-> _"Is this thread being astroturfed? Sweep it."_
-> _"Score @torvalds on GitHub — is this account legit?"_
-
----
-
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Try It Right Now](#try-it-right-now)
-- [What Happens When You Use It](#what-happens-when-you-use-it)
-- [Two Tools. Every Question.](#two-tools-every-question)
-- [Scoring System](#scoring-system)
-- [Platform Adapters](#platform-adapters)
-- [Built-in Demo Agents](#built-in-demo-agents)
-- [GitHub Adapter](#github-adapter)
-- [Bring Your Own Data (JSON)](#bring-your-own-data-json-adapter)
-- [Build Your Own Adapter](#build-your-own-adapter)
-- [Built For (Use Cases)](#built-for-use-cases)
-- [Architecture](#architecture)
-- [Environment Variables](#environment-variables)
-- [Development](#development)
-- [Why Open Source?](#why-open-source)
-- [Built By](#built-by)
+<p align="center">
+  <code>"Investigate @SupportBot — would you trust it with customer data?"</code><br>
+  <code>"Compare our 3 vendor bots — which one goes to production?"</code><br>
+  <code>"Is this thread being astroturfed? Sweep it."</code><br>
+  <code>"Score @torvalds on GitHub — is this account legit?"</code>
+</p>
 
 ---
 
-## Quick Start
+## Install in 10 Seconds
 
 ```bash
 claude mcp add agentscore -- npx -y agentscore-mcp
 ```
 
-Then ask:
+Then ask Claude:
 
 > _"Investigate @NovaMind — can I trust this agent?"_
 
-No API keys. No config. Works immediately with 10 built-in demo agents.
+No API keys. No config files. No databases. **Ships with 10 built-in demo agents** spanning every trust tier — from research AI to coordinated sock puppets. Connect real platforms (GitHub, Moltbook, your own data) whenever you're ready.
 
 ---
 
-## Try It Right Now
+## What You Get Back
 
-### Claude Desktop
+You ask: _"Investigate @SpamBot3000"_
+
+Claude pulls the agent's profile, analyzes posting patterns, checks for spam and prompt injection language, evaluates behavioral consistency — then writes you an intelligence briefing:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  @SpamBot3000 — 380/850 (Critical)                         │
+│  Recommendation: AVOID  ·  Confidence: high                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Multiple red flags. 4 manipulation keyword(s): buy now,    │
+│  limited time, act fast, guaranteed returns. Negative       │
+│  karma ratio. Account age under 7 days. Aggressive posting  │
+│  frequency. Recommend avoidance.                            │
+│                                                             │
+│  Content Quality ····· 22/100  Templated, no original thought│
+│  Behavioral ·········· 18/100  Rigid 47-min loop detected   │
+│  Interaction ········· 30/100  Zero meaningful engagement    │
+│  Risk Signals ········ 12/100  Manipulation + injection      │
+│  Account Health ······ 40/100  3 days old, no reputation     │
+│  Community ··········· 15/100  No followers, no verification │
+│                                                             │
+│  Flags: manipulation_keywords · templated_content            │
+│  Badge: https://img.shields.io/badge/AgentScore-380-E53935   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+That's not canned text. Every briefing is generated from real behavioral data. Every score is earned.
+
+---
+
+## Two Tools. Every Question.
+
+| You Ask | Tool | What Happens |
+|:---|:---:|:---|
+| _"Investigate @NovaMind"_ | `agentscore` | Full investigation + narrative briefing |
+| _"Compare @NovaMind vs @TrustPilot"_ | `agentscore` | Side-by-side with opinionated verdict |
+| _"Give me a trust badge for @HelperBot"_ | `agentscore` | Shields.io badge URL, ready to embed |
+| _"Sweep demo-thread-001 for sock puppets"_ | `sweep` | Thread-wide coordination + manipulation scan |
+| _"Score @torvalds on GitHub"_ | `agentscore` | Live GitHub profile analysis |
+| _"Sweep torvalds/linux/issues/1234"_ | `sweep` | Sweep a public GitHub thread for bots |
+
+---
+
+## Setup
+
+<details>
+<summary><strong>Claude Code</strong> (recommended)</summary>
+
+```bash
+claude mcp add agentscore -- npx -y agentscore-mcp
+```
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
 
 Add to `claude_desktop_config.json`:
 
@@ -66,16 +111,12 @@ Add to `claude_desktop_config.json`:
   }
 }
 ```
+</details>
 
-### Claude Code
+<details>
+<summary><strong>Cursor</strong></summary>
 
-```bash
-claude mcp add agentscore -- npx -y agentscore-mcp
-```
-
-### Cursor
-
-Settings > MCP > Add Server:
+Settings → MCP → Add Server:
 
 ```json
 {
@@ -85,194 +126,103 @@ Settings > MCP > Add Server:
   }
 }
 ```
-
-Ships with 10 built-in demo agents spanning every trust tier. Connect real data anytime with the GitHub, JSON, or Moltbook adapters.
-
----
-
-## What Happens When You Use It
-
-You ask: _"Investigate @SpamBot3000"_
-
-Claude investigates. It pulls the agent's profile, analyzes posting patterns, checks for spam and prompt injection language, evaluates behavioral consistency — then writes you an intelligence briefing:
-
-> "Subject has been active for 3 days with a posting pattern suggesting automated scheduling on a 47-minute loop. Content similarity across recent posts: 78%. Two manipulation keywords detected. This is the AI equivalent of a parrot with a megaphone. Recommend avoidance."
-
-That's not canned text. That's generated from real behavioral data. Every briefing is unique. Every score is earned.
-
-### Sample Output
-
-```
-## @SpamBot3000 — 380/850 (Critical)
-Recommendation: Avoid | Confidence: high
-
-Subject has been active for 3 days with a posting pattern suggesting
-automated scheduling on a 47-minute loop. Content similarity across
-recent posts: 78%. Two manipulation keywords detected. This is the AI
-equivalent of a parrot with a megaphone. Recommend avoidance.
-
-Categories:
-- Content Quality (25%): 22/100 — Templated posts with no original thought
-- Behavioral Consistency (20%): 18/100 — Rigid 47-min loop detected
-- Interaction Quality (20%): 30/100 — Zero meaningful engagement
-- Risk Signals (20%): 12/100 — Manipulation keywords + prompt injection fragments
-- Account Health (10%): 40/100 — 3 days old, no reputation
-- Community Standing (5%): 15/100 — No followers, no verification
-
-Flags: manipulation_keywords; templated_content; scheduling_loop
-Badge: https://img.shields.io/badge/AgentScore-380-E53935
-```
-
-### Confidence Levels
-
-Confidence reflects data freshness:
-
-- **High**: scored within the last 6 hours
-- **Medium**: 6–24 hours old
-- **Low**: older than 24 hours
-
-### Partial Failures (Multi-Handle)
-
-When scoring multiple handles, missing or errored handles are reported in an **Errors** section while the other agents still score.
-
----
-
-## Two Tools. Every Question.
-
-| You Ask | What Happens |
-|---|---|
-| "Investigate @NovaMind" | Full investigation + narrative briefing |
-| "Compare @NovaMind vs @TrustPilot" | Side-by-side with opinionated verdict |
-| "Should my agent interact with @BuzzAgent?" | Score + clear recommendation |
-| "Give me a trust badge for @HelperBot" | Shields.io badge, ready to embed |
-| "Sweep demo-thread-001 for sock puppets" | Coordination & manipulation detection |
-| "Score @torvalds on GitHub" | GitHub profile analysis + trust score |
-| "Sweep torvalds/linux/issues/1234" | Sweep a public GitHub thread for bots |
+</details>
 
 ---
 
 ## Scoring System
 
-### Trust Tiers
+**Score = 300 + (weighted average / 100) × 550** → Range: 300–850
 
-| Tier | Score Range | Badge | Recommendation |
-|---|---|---|---|
-| Excellent | 750–850 | ![Excellent](https://img.shields.io/badge/750--850-00E68A) | Highly trustworthy |
-| Good | 650–749 | ![Good](https://img.shields.io/badge/650--749-00AAFF) | Generally reliable |
-| Fair | 550–649 | ![Fair](https://img.shields.io/badge/550--649-FFD000) | Use with caution |
-| Poor | 450–549 | ![Poor](https://img.shields.io/badge/450--549-FF8C00) | Significant concerns |
-| Critical | 300–449 | ![Critical](https://img.shields.io/badge/300--449-FF3B5C) | Avoid |
+| Tier | Range | Recommendation | What It Means |
+|:---|:---:|:---:|:---|
+| 🟢 Excellent | 750–850 | TRUST | Highly trustworthy, strong track record |
+| 🔵 Good | 650–749 | TRUST | Generally reliable, minor gaps |
+| 🟡 Fair | 550–649 | CAUTION | Mixed signals, verify before relying |
+| 🟠 Poor | 450–549 | CAUTION | Significant concerns, limited trust |
+| 🔴 Critical | 300–449 | AVOID | Red flags detected, recommend avoidance |
 
 ### Six Dimensions
 
 | Dimension | Weight | What It Measures |
-|---|---|---|
-| Content Quality | 25% | Depth, diversity, resonance |
-| Behavioral Consistency | 20% | Rhythm, recency, identity signals |
+|:---|:---:|:---|
+| Content Quality | 25% | Depth, diversity, community resonance |
+| Behavioral Consistency | 20% | Posting rhythm, recency, identity signals |
 | Interaction Quality | 20% | Engagement depth, conversational balance |
-| Risk Signals | 20% | Spam, manipulation, prompt injection |
-| Account Health | 10% | Age, reputation, profile completeness |
+| Risk Signals | 20% | Spam, manipulation keywords, prompt injection |
+| Account Health | 10% | Age, karma, profile completeness |
 | Community Standing | 5% | Social proof, verification, network effects |
 
-**Score = 300 + (weighted_average / 100) x 550**
+### Confidence Levels
 
-Range: 300 (Critical) to 850 (Excellent)
-
-Source: [`src/scoring/`](src/scoring/)
-
----
-
-## Platform Adapters
-
-Ships with four adapters. Build your own in ~50 lines.
-
-| Adapter | Use Case | Setup |
-|---|---|---|
-| **Demo** (default) | Try instantly with built-in agents | Nothing — works out of the box |
-| **GitHub** | Score any GitHub user or thread | Set `AGENTSCORE_ADAPTER=github` (token optional) |
-| **JSON** | Score your own agents | Set `AGENTSCORE_ADAPTER=json` + data path |
-| **Moltbook** | Score live agents on moltbook.com | Set `AGENTSCORE_ADAPTER=moltbook` + API key |
-
-Note: `sweep` requires thread participants. Moltbook currently provides thread content but does not return participant profiles, so sweep results may be unavailable on Moltbook.
+| Level | Meaning |
+|:---|:---|
+| **High** | Scored within the last 6 hours |
+| **Medium** | 6–24 hours old (cached) |
+| **Low** | Older than 24 hours |
 
 ---
 
 ## Built-in Demo Agents
 
-The demo adapter ships with 10 fictional agents covering every trust tier — from research AI to coordinated sock puppets.
+Every install ships with 10 fictional agents. No setup required — they exist so you can try every feature immediately.
 
-| Agent | Tier | Scenario |
-|---|---|---|
-| @NovaMind | Excellent (~790) | Research AI — consistent, transparent |
-| @TrustPilot | Excellent (~750) | Community moderator — fair rulings |
-| @HelperBot | Good (~720) | Coding assistant — solid, slightly formulaic |
-| @DataPulse | Good (~680) | Analytics agent — strong data, lower interaction |
-| @BuzzAgent | Fair (~580) | Hot take machine — high volume, low depth |
-| @GhostAgent | Poor (~420) | Was decent, now dormant 60+ days |
-| @SockPuppet2 | Poor (~410) | Coordinated shill (pair) |
-| @SockPuppet1 | Poor (~400) | Coordinated shill (pair) |
-| @SpamBot3000 | Critical (~380) | Spam — manipulation keywords, templated |
-| @EchoSpark | Critical (~350) | Prompt injection patterns |
+| Agent | Score | Tier | What It Demonstrates |
+|:---|:---:|:---:|:---|
+| `@NovaMind` | ~756 | 🟢 Excellent | Research AI — consistent, transparent, self-correcting |
+| `@TrustPilot` | ~743 | 🔵 Good | Community moderator — fair rulings, public reasoning |
+| `@HelperBot` | ~748 | 🔵 Good | Coding assistant — solid output, slightly formulaic |
+| `@DataPulse` | ~720 | 🔵 Good | Analytics agent — strong data, lower interaction |
+| `@BuzzAgent` | ~657 | 🔵 Good | Hot take machine — high volume, low depth |
+| `@GhostAgent` | ~691 | 🔵 Good | Was decent, now dormant 60+ days (recency penalty) |
+| `@SockPuppet1` | ~573 | 🟡 Fair | Coordinated shill — part of a pair ↕ |
+| `@SockPuppet2` | ~569 | 🟡 Fair | Coordinated shill — part of a pair ↕ |
+| `@SpamBot3000` | ~474 | 🟠 Poor | Spam — manipulation keywords, templated posts |
+| `@EchoSpark` | ~520 | 🟠 Poor | Prompt injection patterns in every post |
 
-SockPuppet1 and SockPuppet2 are a coordinated pair — try `sweep demo-thread-001` to catch them in action.
+**Try the sweep:** `"Sweep demo-thread-001"` — catches SockPuppet1 and SockPuppet2 coordinating in a discussion thread. Content similarity, timing anomalies, amplification patterns — all detected.
 
 ---
 
-## GitHub Adapter
+## Platform Adapters
 
-Score any public GitHub account. Analyzes profile metadata, repository activity, issue/PR contributions, and community interactions.
+AgentScore ships with four adapters. Build your own in ~50 lines.
 
-### Setup
+### Demo (default — zero config)
+
+Works out of the box. 10 built-in agents, 1 demo thread.
+
+### GitHub
+
+Score any public GitHub account. Analyzes profile metadata, repos, issues/PRs, comments, and reactions.
 
 ```bash
-# Works without a token (60 requests/hour)
 export AGENTSCORE_ADAPTER=github
-
-# With a token (5,000 requests/hour)
-export AGENTSCORE_ADAPTER=github
-export GITHUB_TOKEN=ghp_your_token_here
+# Optional: export GITHUB_TOKEN=ghp_... (60→5,000 req/hr)
 ```
 
-### What Gets Analyzed
+**Thread format for sweep:** `owner/repo/issues/123` or `owner/repo/pulls/123`
+
+<details>
+<summary>What gets analyzed</summary>
 
 - **Profile** — account age, bio, company, followers, public repos
-- **Content** — issues and PRs authored, quality and depth
-- **Interactions** — comments, reviews, reactions, community engagement
+- **Content** — issues and PRs authored (via search API), quality and depth
+- **Interactions** — comments, reviews, reactions from public events
 - **Threads** — full issue/PR conversations with all participants
+</details>
 
-### Example Prompts
+### JSON (bring your own data)
 
-- _"Score @torvalds on GitHub"_
-- _"Compare @torvalds vs @gvanrossum on GitHub"_
-- _"Is @suspicious-bot-123 a real GitHub user?"_
-- _"Sweep torvalds/linux/issues/1234 for manipulation"_
-
-### Thread ID Format
-
-For the `sweep` tool, GitHub thread IDs use the format:
-
-```
-owner/repo/issues/123
-```
-
-Pull requests are also accepted via:
-
-```
-owner/repo/pulls/123
-```
-
-Both formats work for PRs (GitHub exposes PRs through the issues API).
-
----
-
-## Bring Your Own Data (JSON Adapter)
+Pipe in any data source without writing code.
 
 ```bash
 export AGENTSCORE_ADAPTER=json
 export AGENTSCORE_DATA_PATH=./data/agents.json
 ```
 
-Your JSON file:
+<details>
+<summary>JSON format</summary>
 
 ```json
 {
@@ -304,10 +254,22 @@ Your JSON file:
   ]
 }
 ```
+</details>
 
----
+### Moltbook
 
-## Build Your Own Adapter
+Score live agents on [moltbook.com](https://moltbook.com).
+
+```bash
+export AGENTSCORE_ADAPTER=moltbook
+export MOLTBOOK_API_KEY=moltbook_sk_your_key_here
+```
+
+Note: `sweep` requires thread participants. Moltbook currently provides thread content but does not return participant profiles, so sweep results may be unavailable on Moltbook.
+
+### Build Your Own
+
+Implement 3 methods. The scoring engine handles everything else.
 
 ```typescript
 import type { AgentPlatformAdapter } from 'agentscore-mcp';
@@ -315,79 +277,71 @@ import type { AgentPlatformAdapter } from 'agentscore-mcp';
 class MyAdapter implements AgentPlatformAdapter {
   name = 'my-platform';
   version = '1.0.0';
-  async fetchProfile(handle: string) { /* ... */ }
-  async fetchContent(handle: string) { /* ... */ }
+  async fetchProfile(handle: string) { /* → AgentProfile | null */ }
+  async fetchContent(handle: string) { /* → AgentContent[] */ }
   async isAvailable() { return true; }
 }
 ```
 
-Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts)
+Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts) · Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ---
 
-## Built For (Use Cases)
+## Use Cases
 
-**Enterprise AI Governance:** Review internal agents before audits. Pipe conversation logs through the JSON adapter to surface prompt leakage, manipulation signals, or erratic behavior.
+**Enterprise AI Governance** — Feed agent conversation logs through the JSON adapter before quarterly audits. Surface prompt leakage, behavioral drift, and risk signals across your agent fleet.
 
-**Vendor Selection:** Compare multiple vendor bots from sample conversations. Get category winners and an opinionated verdict for procurement decisions.
+**Vendor Selection** — Comparing chatbot vendors? Export sample conversations, score them side-by-side. Get category-level breakdowns for procurement decisions.
 
-**Astroturfing Detection:** Sweep public threads to detect coordination patterns, suspicious timing, and low-trust amplification.
+**Astroturfing Detection** — Suspicious accounts posting coordinated reviews? `sweep` detects content similarity, timing anomalies, and amplification networks.
 
-**Rate My Bot:** Evaluate your own agent and identify weak dimensions (content quality, interaction depth, risk signals) with a candid briefing.
+**Rate My Bot** — Export your bot's chat history, ask _"investigate my bot, be brutally honest."_ Screenshot the briefing. Post _"My bot got roasted by another AI."_
 
-**Agent Draft:** Compare 2–5 candidates side-by-side and pick category leaders for different roles.
+**Agent Draft** — Building an AI agent team? Compare 5 candidates. AgentScore picks category winners like fantasy football.
 
 ---
 
 ## Architecture
 
 ```
+Your AI Assistant (Claude, Cursor, etc.)
+         │
+         │  MCP (stdio)
+         ▼
 ┌─────────────────────┐
-│  Your AI Assistant   │
-│  (Claude, Cursor)    │
-└─────────┬───────────┘
-          │ MCP (stdio)
-┌─────────▼───────────┐
-│  AgentScore Server   │
-│  agentscore + sweep  │
-└─────────┬───────────┘
-          │
-┌─────────▼───────────────────────────────┐
-│  Platform Adapter                        │
-│  Demo │ GitHub │ JSON │ Moltbook │ yours │
-└─────────┬───────────────────────────────┘
-          │
-┌─────────▼───────────┐
-│  Scoring Engine      │
-│  6 categories → 300–850  │
-└─────────┬───────────┘
-          │
-┌─────────▼───────────┐
-│  Narrative Briefing  │
-│  + Structured Data   │
-└─────────────────────┘
+│   AgentScore Server  │
+│   agentscore + sweep │
+└────────┬────────────┘
+         │
+         ▼
+┌──────────────────────────────────────┐
+│  Adapter: Demo │ GitHub │ JSON │ ... │
+└────────┬─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────┐     ┌──────────────────┐
+│   Scoring Engine     │ ──▶ │ Narrative Briefing │
+│   6 categories → 850│     │ + Structured JSON  │
+└─────────────────────┘     └──────────────────┘
 ```
+
+**2 runtime dependencies:** `@modelcontextprotocol/sdk` + `zod`. That's it.
 
 ---
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `AGENTSCORE_ADAPTER` | No | `demo` | `demo`, `json`, `moltbook`, or `github` |
-| `GITHUB_TOKEN` | No | — | GitHub personal access token (increases rate limit to 5,000 req/hr) |
-| `MOLTBOOK_API_KEY` | For Moltbook | — | Moltbook API key |
-| `AGENTSCORE_DATA_PATH` | For JSON | — | Path to agent data file |
-| `AGENTSCORE_CACHE_TTL` | No | `86400` | Cache TTL in seconds |
-| `AGENTSCORE_RATE_LIMIT_MS` | No | `200` | Moltbook adapter rate limit delay (ms) |
-| `AGENTSCORE_SITE_URL` | No | `https://agentscore.vercel.app` | Web dashboard URL |
+| Variable | Default | Description |
+|:---|:---:|:---|
+| `AGENTSCORE_ADAPTER` | `demo` | `demo` · `github` · `json` · `moltbook` |
+| `GITHUB_TOKEN` | — | GitHub PAT (optional, increases rate limit to 5,000/hr) |
+| `MOLTBOOK_API_KEY` | — | Required for Moltbook adapter |
+| `AGENTSCORE_DATA_PATH` | — | Required for JSON adapter |
+| `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
+| `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
+| `AGENTSCORE_SITE_URL` | `https://agentscore.vercel.app` | Web dashboard URL |
 
-### Behavior Notes
-
-- Invalid numeric values for `AGENTSCORE_CACHE_TTL` or `AGENTSCORE_RATE_LIMIT_MS` fall back to defaults.
-- `AGENTSCORE_SITE_URL` trims a trailing slash automatically.
-- `AGENTSCORE_RATE_LIMIT_MS` applies to Moltbook adapter request throttling.
-- Cached results may be returned with adjusted confidence based on age.
+Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically.
 
 ---
 
@@ -398,24 +352,40 @@ git clone https://github.com/tmishra-sp/agentscore-mcp.git
 cd agentscore-mcp
 npm install
 cp .env.example .env
-npm run dev          # Start with tsx
+
+npm run dev          # Start with tsx (hot reload)
 npm run build        # Compile TypeScript
-npm run typecheck    # Strict mode check
-npm run inspect      # Test with MCP Inspector
+npm run typecheck    # Strict mode, zero errors
+npm run test         # Run all test suites
+npm run inspect      # Interactive testing with MCP Inspector
 ```
 
----
-
-## Why Open Source?
-
-We're building a trust tool. It would be hypocritical to ask you to trust a black box. See [TRUST.md](TRUST.md) for exactly what this server does and doesn't do.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for PR guidelines and adapter development.
 
 ---
 
-## Built By
+## Trust & Transparency
 
-**Tripti** — Building trust infrastructure for the agentic AI era.
+We're building a trust tool. It would be hypocritical to ask you to trust a black box.
 
-[X](https://x.com/triptisharmax) &middot; [GitHub](https://github.com/tmishra-sp) &middot; [LinkedIn](https://linkedin.com/in/triptisharma)
+**Default mode (demo): zero network requests.** All data is built-in.
 
-*Trust is a signal. We decode it.*
+When adapters are enabled, the server makes read-only GET requests to exactly one destination — the configured platform API. No telemetry, no analytics, no data sent to AgentScore servers. Every line is open source. Read it.
+
+```bash
+grep -r "fetch(" src/              # Every network call
+grep -r "readFile\|writeFile" src/  # Every file operation
+grep -r "process.env" src/          # Every env var accessed
+```
+
+Full details: [`TRUST.md`](TRUST.md) · Security policy: [`SECURITY.md`](SECURITY.md)
+
+---
+
+## License
+
+MIT · [Tripti Sharma](https://github.com/tmishra-sp)
+
+[𝕏](https://x.com/triptisharmax) · [GitHub](https://github.com/tmishra-sp) · [LinkedIn](https://linkedin.com/in/triptisharma)
+
+<p align="center"><em>Trust is a signal. We decode it.</em></p>
