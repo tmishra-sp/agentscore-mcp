@@ -3,7 +3,9 @@
  *
  * Covers:
  * - Config NaN fallback
+ * - Config adapter validation
  * - JSON adapter error on malformed file
+ * - GitHub client 403 rate-limit retry behavior
  * - Sweep/agentscore zod schema validation
  * - Tier definitions match expected values
  *
@@ -12,6 +14,8 @@
 
 import { z } from "zod";
 import { TIERS, getTier } from "../dist/scoring/tiers.js";
+import { spawnSync } from "node:child_process";
+import { GitHubClient } from "../dist/adapters/github/client.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -79,10 +83,46 @@ if (origRateLimitMs === undefined) delete process.env.AGENTSCORE_RATE_LIMIT_MS;
 else process.env.AGENTSCORE_RATE_LIMIT_MS = origRateLimitMs;
 
 // ═════════════════════════════════════════════════════════════════════
-// 2. JSON adapter error on malformed file
+// 2. Config adapter validation
 // ═════════════════════════════════════════════════════════════════════
 
-section("2. JSON Adapter Error Handling");
+section("2. Config Adapter Validation");
+
+const configScript = [
+  "import('./dist/config.js')",
+  ".then((m) => {",
+  "  m.loadConfig();",
+  "  console.log('ok');",
+  "})",
+  ".catch((error) => {",
+  "  console.error(error.message);",
+  "  process.exit(42);",
+  "});",
+].join("");
+
+const badAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "not-real-adapter" },
+  encoding: "utf-8",
+});
+
+assert(badAdapterRun.status === 42, `Invalid adapter exits with code 42: ${badAdapterRun.status}`);
+assert(
+  (badAdapterRun.stderr || "").includes("AGENTSCORE_ADAPTER must be one of"),
+  "Invalid adapter error message is explicit"
+);
+
+const validAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "demo" },
+  encoding: "utf-8",
+});
+
+assert(validAdapterRun.status === 0, `Valid adapter loads config: ${validAdapterRun.status}`);
+
+// ═════════════════════════════════════════════════════════════════════
+// 3. JSON adapter error on malformed file
+// ═════════════════════════════════════════════════════════════════════
+
+section("3. JSON Adapter Error Handling");
 
 import { JSONAdapter } from "../dist/adapters/json/adapter.js";
 import { writeFile, unlink } from "node:fs/promises";
@@ -115,10 +155,60 @@ delete process.env.AGENTSCORE_ADAPTER;
 delete process.env.AGENTSCORE_DATA_PATH;
 
 // ═════════════════════════════════════════════════════════════════════
-// 3. Sweep/agentscore zod schema validation
+// 4. GitHub client 403 rate-limit retry behavior
 // ═════════════════════════════════════════════════════════════════════
 
-section("3. Zod Schema Validation");
+section("4. GitHub 403 Retry Behavior");
+
+const originalFetch = globalThis.fetch;
+let fetchCalls = 0;
+globalThis.fetch = async () => {
+  fetchCalls++;
+  if (fetchCalls === 1) {
+    return new Response(JSON.stringify({ message: "API rate limit exceeded" }), {
+      status: 403,
+      headers: {
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset": "0",
+      },
+    });
+  }
+  return new Response(
+    JSON.stringify({
+      login: "octocat",
+      name: "The Octocat",
+      bio: null,
+      company: null,
+      blog: null,
+      type: "User",
+      followers: 1,
+      following: 1,
+      public_repos: 1,
+      created_at: "2020-01-01T00:00:00Z",
+    }),
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+try {
+  const githubClient = new GitHubClient();
+  const user = await githubClient.fetchUser("octocat");
+  assert(fetchCalls === 2, `GitHub client retried after 403: ${fetchCalls} calls`);
+  assert(user && user.login === "octocat", "GitHub user returned after retry");
+} finally {
+  globalThis.fetch = originalFetch;
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// 5. Sweep/agentscore zod schema validation
+// ═════════════════════════════════════════════════════════════════════
+
+section("5. Zod Schema Validation");
 
 // Sweep threadId schema
 const sweepThreadIdSchema = z
@@ -180,10 +270,10 @@ assert(!handleSchema.safeParse("a".repeat(51)).success, "Invalid handle: too lon
 assert(!handleSchema.safeParse("has spaces").success, "Invalid handle: spaces");
 
 // ═════════════════════════════════════════════════════════════════════
-// 4. Tier definitions match expected values
+// 6. Tier definitions match expected values
 // ═════════════════════════════════════════════════════════════════════
 
-section("4. Tier Definitions");
+section("6. Tier Definitions");
 
 const expectedTiers = [
   { name: "Excellent", min: 750, max: 850, color: "#00E68A" },

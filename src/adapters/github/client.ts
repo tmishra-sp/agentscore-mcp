@@ -109,18 +109,26 @@ export class GitHubClient {
         // Parse rate limit headers
         const remaining = parseInt(response.headers.get("X-RateLimit-Remaining") || "-1", 10);
         const resetTs = parseInt(response.headers.get("X-RateLimit-Reset") || "0", 10);
+        const retryAfter = parseInt(response.headers.get("Retry-After") || "0", 10);
         if (remaining >= 0 && remaining < 10) {
           const resetDate = new Date(resetTs * 1000).toLocaleTimeString();
           console.error(`[agentscore] GitHub rate limit low: ${remaining} remaining, resets at ${resetDate}`);
         }
 
-        // Handle rate limiting
-        if (response.status === 429) {
+        // Handle primary (403/429) and secondary (Retry-After) rate limiting
+        const isRateLimited =
+          response.status === 429 ||
+          (response.status === 403 && (remaining === 0 || retryAfter > 0));
+        if (isRateLimited) {
           if (attempt < MAX_RETRIES) {
-            const sleepMs = resetTs > 0
-              ? Math.max((resetTs * 1000) - Date.now(), 1000)
-              : Math.pow(2, attempt) * 1000;
-            console.error(`[agentscore] GitHub 429 — sleeping ${Math.round(sleepMs / 1000)}s`);
+            const sleepMs = retryAfter > 0
+              ? retryAfter * 1000
+              : resetTs > 0
+                ? Math.max((resetTs * 1000) - Date.now(), 1000)
+                : Math.pow(2, attempt) * 1000;
+            console.error(
+              `[agentscore] GitHub rate limited (${response.status}) — sleeping ${Math.round(sleepMs / 1000)}s`
+            );
             await new Promise((resolve) => setTimeout(resolve, sleepMs));
             continue;
           }
@@ -152,7 +160,13 @@ export class GitHubClient {
       if (response.status === 404) return null;
       if (response.status === 422) return null; // Complex search queries can 422
       if (!response.ok) {
-        console.error(`[agentscore] GitHub API error: ${response.status} for ${url}`);
+        const remaining = parseInt(response.headers.get("X-RateLimit-Remaining") || "-1", 10);
+        const retryAfter = response.headers.get("Retry-After");
+        if (response.status === 403 && (remaining === 0 || !!retryAfter)) {
+          console.error(`[agentscore] GitHub API rate limit exhausted for ${url}`);
+        } else {
+          console.error(`[agentscore] GitHub API error: ${response.status} for ${url}`);
+        }
         return null;
       }
       const json: unknown = await response.json();

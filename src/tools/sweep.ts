@@ -5,6 +5,7 @@ import { scoreAgent } from "../scoring/engine.js";
 import { trigramSimilarity } from "../scoring/utils.js";
 import { ScoreCache } from "../cache/score-cache.js";
 import { RateLimiter } from "../security/rate-limiter.js";
+import { resolveClientKey } from "../security/client-key.js";
 
 const inputSchema = {
   threadId: z
@@ -33,6 +34,7 @@ interface SweepOutput {
   participants: SweepParticipant[];
   threatLevel: ThreatLevel;
   patterns: string[];
+  notes?: string[];
   briefing: string;
 }
 
@@ -75,19 +77,21 @@ export function registerSweepTool(
       idempotentHint: true,
     },
     async ({ threadId, platform }, context) => {
-      const clientKey = context?.sessionId || "anonymous";
-      const rateKey = `${clientKey}:sweep`;
-      if (!rateLimiter.allow(rateKey)) {
-        const retryIn = Math.ceil(rateLimiter.msUntilReset(rateKey) / 1000);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Rate limit exceeded. Try again in ${retryIn}s.`,
-            },
-          ],
-          isError: true,
-        };
+      const clientKey = resolveClientKey(context);
+      if (clientKey) {
+        const rateKey = `${clientKey}:sweep`;
+        if (!rateLimiter.allow(rateKey)) {
+          const retryIn = Math.ceil(rateLimiter.msUntilReset(rateKey) / 1000);
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Rate limit exceeded. Try again in ${retryIn}s.`,
+              },
+            ],
+            isError: true,
+          };
+        }
       }
       const adapter = getAdapter(platform);
 
@@ -124,16 +128,11 @@ export function registerSweepTool(
 
         // 2. Fetch thread participants from adapter
         const participantProfiles = await adapter.fetchThreadParticipants(threadId);
+        const notes: string[] = [];
         if (participantProfiles.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `No participants found for thread on ${adapter.name}.`,
-              },
-            ],
-            isError: true,
-          };
+          notes.push(
+            `Participant profiles unavailable for ${adapter.name}; running content-only coordination analysis.`
+          );
         }
 
         // 3. Score each participant
@@ -141,31 +140,39 @@ export function registerSweepTool(
         const scores: number[] = [];
 
         for (const profile of participantProfiles) {
-          const cached = cache.get(adapter.name, profile.handle);
-          let score: number;
-          let tier: string;
+          try {
+            const cached = cache.get(adapter.name, profile.handle);
+            let score: number;
+            let tier: string;
 
-          if (cached) {
-            score = cached.result.score;
-            tier = cached.result.tier;
-          } else {
-            const content = truncateContent(await adapter.fetchContent(profile.handle));
-            const interactions = adapter.fetchInteractions
-              ? truncateContent(await adapter.fetchInteractions(profile.handle))
-              : [];
-            const result = scoreAgent(profile, content, interactions);
-            cache.set(adapter.name, profile.handle, result, profile);
-            score = result.score;
-            tier = result.tier;
+            if (cached) {
+              score = cached.result.score;
+              tier = cached.result.tier;
+            } else {
+              const content = truncateContent(await adapter.fetchContent(profile.handle));
+              const interactions = adapter.fetchInteractions
+                ? truncateContent(await adapter.fetchInteractions(profile.handle))
+                : [];
+              const result = scoreAgent(profile, content, interactions);
+              cache.set(adapter.name, profile.handle, result, profile);
+              score = result.score;
+              tier = result.tier;
+            }
+
+            scores.push(score);
+            participants.push({
+              handle: profile.handle,
+              score,
+              tier,
+              role: participants.length === 0 ? "author" : "participant",
+            });
+          } catch (error) {
+            notes.push(`Unable to score @${profile.handle}: ${sanitizeError(error)}`);
           }
+        }
 
-          scores.push(score);
-          participants.push({
-            handle: profile.handle,
-            score,
-            tier,
-            role: participants.length === 0 ? "author" : "participant",
-          });
+        if (participantProfiles.length > 0 && participants.length === 0) {
+          notes.push("No participant scores could be computed.");
         }
 
         // 4. Run coordination analysis
@@ -244,11 +251,12 @@ export function registerSweepTool(
 
         // Determine threat level
         let threatLevel: ThreatLevel;
-        const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        const hasParticipantScores = scores.length > 0;
+        const avgScore = hasParticipantScores ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
         if (coordinationSignals >= 3 || patterns.some((p) => p.includes("same controller"))) {
           threatLevel = "COMPROMISED";
-        } else if (coordinationSignals >= 1 || avgScore < 500) {
+        } else if (coordinationSignals >= 1 || (hasParticipantScores && avgScore < 500)) {
           threatLevel = "SUSPICIOUS";
         } else {
           threatLevel = "CLEAN";
@@ -270,6 +278,7 @@ export function registerSweepTool(
           participants,
           threatLevel,
           patterns,
+          ...(notes.length > 0 ? { notes } : {}),
           briefing,
         };
 
@@ -281,10 +290,15 @@ export function registerSweepTool(
           (patterns.length > 0
             ? `**Patterns Detected:**\n${patterns.map((p) => `- ${p}`).join("\n")}\n\n`
             : "") +
+          (notes.length > 0
+            ? `**Notes:**\n${notes.map((n) => `- ${n}`).join("\n")}\n\n`
+            : "") +
           `**Participant Scores:**\n` +
-          participants
-            .map((p) => `- @${p.handle}: ${p.score}/850 (${p.tier}) [${p.role}]`)
-            .join("\n");
+          (participants.length > 0
+            ? participants
+                .map((p) => `- @${p.handle}: ${p.score}/850 (${p.tier}) [${p.role}]`)
+                .join("\n")
+            : "- No participant scores available");
 
         return {
           content: [

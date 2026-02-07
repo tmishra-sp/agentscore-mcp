@@ -5,6 +5,7 @@ import type { AgentScoreResult, ComparisonResult, Confidence } from "../scoring/
 import { scoreAgent, compareAgents } from "../scoring/engine.js";
 import { ScoreCache } from "../cache/score-cache.js";
 import { RateLimiter } from "../security/rate-limiter.js";
+import { resolveClientKey } from "../security/client-key.js";
 
 const inputSchema = {
   handles: z
@@ -68,19 +69,21 @@ export function registerAgentScoreTool(
       idempotentHint: true,
     },
     async ({ handles, platform }, context) => {
-      const clientKey = context?.sessionId || "anonymous";
-      const rateKey = `${clientKey}:agentscore`;
-      if (!rateLimiter.allow(rateKey)) {
-        const retryIn = Math.ceil(rateLimiter.msUntilReset(rateKey) / 1000);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Rate limit exceeded. Try again in ${retryIn}s.`,
-            },
-          ],
-          isError: true,
-        };
+      const clientKey = resolveClientKey(context);
+      if (clientKey) {
+        const rateKey = `${clientKey}:agentscore`;
+        if (!rateLimiter.allow(rateKey)) {
+          const retryIn = Math.ceil(rateLimiter.msUntilReset(rateKey) / 1000);
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Rate limit exceeded. Try again in ${retryIn}s.`,
+              },
+            ],
+            isError: true,
+          };
+        }
       }
       const adapter = getAdapter(platform);
       const results: AgentScoreResult[] = [];

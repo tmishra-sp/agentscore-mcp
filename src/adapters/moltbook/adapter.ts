@@ -1,6 +1,6 @@
 import type { AgentPlatformAdapter, AgentProfile, AgentContent } from "../types.js";
 import { MoltbookClient } from "./client.js";
-import type { MoltbookPost, MoltbookComment } from "./types.js";
+import type { MoltbookPost, MoltbookComment, MoltbookAuthor } from "./types.js";
 
 /** Moltbook platform adapter — the default adapter. */
 export class MoltbookAdapter implements AgentPlatformAdapter {
@@ -57,16 +57,25 @@ export class MoltbookAdapter implements AgentPlatformAdapter {
   }
 
   async fetchThreadParticipants(threadId: string): Promise<AgentProfile[]> {
-    // Thread participants require scoring each commenter — handled at tool level.
-    // Here we return profile stubs from the thread data.
     const data = await this.client.fetchThread(threadId);
     if (!data) return [];
 
-    // Extract unique author handles from comments and fetch profiles
     const handles = new Set<string>();
-    // Moltbook comments include agent author info if available
-    // For now, return empty — the sweep tool will score participants individually
-    return [];
+    const postHandle = this.authorHandle(data.post.author);
+    if (postHandle) handles.add(postHandle);
+    for (const comment of data.comments) {
+      const commentHandle = this.authorHandle(comment.author);
+      if (commentHandle) handles.add(commentHandle);
+    }
+
+    if (handles.size === 0) return [];
+
+    const profiles: AgentProfile[] = [];
+    for (const handle of handles) {
+      const profile = await this.fetchProfile(handle);
+      if (profile) profiles.push(profile);
+    }
+    return profiles;
   }
 
   async fetchThreadContent(threadId: string): Promise<AgentContent[]> {
@@ -108,5 +117,11 @@ export class MoltbookAdapter implements AgentPlatformAdapter {
       replyCount: comment.replyCount || 0,
       createdAt: comment.createdAt,
     };
+  }
+
+  private authorHandle(author?: MoltbookAuthor): string | null {
+    if (!author) return null;
+    const value = (author.name || author.username || "").trim();
+    return value.length > 0 ? value : null;
   }
 }

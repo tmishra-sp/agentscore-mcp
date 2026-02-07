@@ -21,6 +21,12 @@ export interface MoltbookAgentResponse {
   recentComments: MoltbookComment[];
 }
 
+export interface MoltbookAuthor {
+  name?: string;
+  username?: string;
+  displayName?: string;
+}
+
 export interface MoltbookPost {
   _id: string;
   title?: string;
@@ -29,6 +35,7 @@ export interface MoltbookPost {
   downvotes: number;
   commentCount: number;
   submolt?: { name: string };
+  author?: MoltbookAuthor;
   createdAt: string;
 }
 
@@ -39,6 +46,7 @@ export interface MoltbookComment {
   downvotes: number;
   replyCount?: number;
   post?: { _id: string; title?: string };
+  author?: MoltbookAuthor;
   createdAt: string;
 }
 

@@ -3,12 +3,15 @@
  *
  * Covers:
  * - agentscore partial failure handling
+ * - agentscore behavior when context lacks a stable session key
+ * - sweep fallback when participant profiles are unavailable
  * - compareAgents guard when categories are missing
  *
  * Run: node test/public-ready.test.mjs
  */
 
 import { registerAgentScoreTool } from "../dist/tools/agentscore.js";
+import { registerSweepTool } from "../dist/tools/sweep.js";
 import { compareAgents } from "../dist/scoring/engine.js";
 import { ScoreCache } from "../dist/cache/score-cache.js";
 
@@ -90,10 +93,23 @@ assert(payload.errors.some((e) => e.handle === "missing"), "Missing handle error
 assert(payload.errors.some((e) => e.handle === "boom"), "Thrown error recorded");
 
 // ═════════════════════════════════════════════════════════════════════
-// 2. compareAgents guard when categories are missing
+// 2. agentscore without session context should not globally rate limit
 // ═════════════════════════════════════════════════════════════════════
 
-section("2. compareAgents Guard Without Categories");
+section("2. agentscore Without Session Context");
+
+let lastResponse = null;
+for (let i = 0; i < 35; i++) {
+  lastResponse = await handler({ handles: ["ok"] });
+}
+
+assert(lastResponse && lastResponse.isError !== true, "No-session calls are not globally rate-limited");
+
+// ═════════════════════════════════════════════════════════════════════
+// 3. compareAgents guard when categories are missing
+// ═════════════════════════════════════════════════════════════════════
+
+section("3. compareAgents Guard Without Categories");
 
 const comparison = compareAgents([
   { handle: "alpha", score: 620, categories: [], recommendation: "TRUST" },
@@ -103,6 +119,77 @@ const comparison = compareAgents([
 assert(
   comparison.verdict.includes("Category breakdown unavailable"),
   "Verdict degrades gracefully without categories"
+);
+
+// ═════════════════════════════════════════════════════════════════════
+// 4. sweep fallback when participant profiles are unavailable
+// ═════════════════════════════════════════════════════════════════════
+
+section("4. sweep Fallback Without Participants");
+
+let sweepHandler;
+const fakeSweepServer = {
+  tool: (_name, _desc, _schema, _hints, fn) => {
+    sweepHandler = fn;
+  },
+};
+
+const now = Date.now();
+const sweepAdapter = {
+  name: "moltbook",
+  version: "test",
+  async fetchThreadContent() {
+    return [
+      {
+        id: "p1",
+        type: "post",
+        content: "launch update",
+        upvotes: 1,
+        downvotes: 0,
+        replyCount: 2,
+        createdAt: new Date(now).toISOString(),
+      },
+      {
+        id: "c1",
+        type: "comment",
+        content: "launch update soon",
+        upvotes: 0,
+        downvotes: 0,
+        replyCount: 0,
+        createdAt: new Date(now + 5000).toISOString(),
+      },
+      {
+        id: "c2",
+        type: "comment",
+        content: "launch update soon now",
+        upvotes: 0,
+        downvotes: 0,
+        replyCount: 0,
+        createdAt: new Date(now + 9000).toISOString(),
+      },
+    ];
+  },
+  async fetchThreadParticipants() {
+    return [];
+  },
+};
+
+registerSweepTool(fakeSweepServer, () => sweepAdapter, new ScoreCache());
+
+const sweepResponse = await sweepHandler({ threadId: "demo-thread-xyz" });
+const sweepPayload = parseJsonFromContent(sweepResponse.content);
+
+assert(sweepResponse.isError !== true, "Sweep succeeds with content-only fallback");
+assert(sweepPayload && sweepPayload.participantCount === 0, "Participant count is 0 when profiles are unavailable");
+assert(
+  sweepPayload &&
+    Array.isArray(sweepPayload.notes) &&
+    sweepPayload.notes.some((n) => n.includes("content-only coordination analysis")),
+  "Fallback note is included in output"
+);
+assert(
+  sweepPayload && sweepPayload.threatLevel === "SUSPICIOUS",
+  "Threat level still computed from thread patterns"
 );
 
 // ═════════════════════════════════════════════════════════════════════

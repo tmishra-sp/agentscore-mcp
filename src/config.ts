@@ -11,10 +11,17 @@ export interface Config {
 }
 
 let _config: Config | null = null;
+const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
-  const adapter = (process.env.AGENTSCORE_ADAPTER || "demo") as Config["adapter"];
+  const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "demo").trim();
+  if (!ADAPTERS.includes(rawAdapter as Config["adapter"])) {
+    throw new Error(
+      `AGENTSCORE_ADAPTER must be one of: ${ADAPTERS.join(", ")}. Received: "${rawAdapter || "<empty>"}".`
+    );
+  }
+  const adapter = rawAdapter as Config["adapter"];
   const dataPath = process.env.AGENTSCORE_DATA_PATH || "";
   const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://ai-agent-score.vercel.app";
 

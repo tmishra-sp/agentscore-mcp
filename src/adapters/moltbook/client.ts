@@ -10,6 +10,11 @@ const MoltbookPostSchema = z.object({
   downvotes: z.number(),
   commentCount: z.number(),
   submolt: z.object({ name: z.string() }).optional(),
+  author: z.object({
+    name: z.string().optional(),
+    username: z.string().optional(),
+    displayName: z.string().optional(),
+  }).passthrough().optional(),
   createdAt: z.string(),
 });
 
@@ -20,6 +25,11 @@ const MoltbookCommentSchema = z.object({
   downvotes: z.number(),
   replyCount: z.number().optional(),
   post: z.object({ _id: z.string(), title: z.string().optional() }).optional(),
+  author: z.object({
+    name: z.string().optional(),
+    username: z.string().optional(),
+    displayName: z.string().optional(),
+  }).passthrough().optional(),
   createdAt: z.string(),
 });
 
