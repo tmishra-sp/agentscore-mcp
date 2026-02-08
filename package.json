@@ -1,6 +1,6 @@
 {
   "name": "agentscore-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Trust scoring for AI agents. Investigate, verify, and compare agent trustworthiness through MCP.",
   "author": "Tripti Mishra",
   "license": "MIT",
@@ -31,7 +31,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts",
-    "test": "npm run build && node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs",
+    "test:suite": "node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs && node test/adapter-contract.test.mjs",
+    "test": "npm run build && npm run test:suite",
+    "coverage": "npm run build && c8 --all --exclude='examples/**' --exclude='dist/server.js' --exclude='dist/adapters/demo/agents.js' --exclude='dist/**/*.d.ts' --exclude='dist/**/*.map' --check-coverage --lines 60 --functions 65 --branches 60 --statements 60 npm run test:suite",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "inspect": "npx @modelcontextprotocol/inspector tsx src/server.ts"
@@ -42,6 +44,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "c8": "^10.1.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.0"
   },

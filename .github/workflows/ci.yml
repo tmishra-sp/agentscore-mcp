@@ -30,9 +30,8 @@ jobs:
         run: npm run build
       - name: Typecheck
         run: npm run typecheck
-      - name: Public readiness tests
-        run: node test/public-ready.test.mjs
-      - name: Code quality tests
-        run: node test/code-quality.test.mjs
-      - name: Demo adapter tests
-        run: node test/demo-adapter.test.mjs
+      - name: Test Suite
+        run: npm run test:suite
+      - name: Coverage Gate
+        if: matrix.node == '20.x'
+        run: npm run coverage
