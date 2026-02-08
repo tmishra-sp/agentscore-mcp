@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `AGENTSCORE_PUBLIC_MODE` guardrail for production deployments, requiring an explicit adapter and blocking the demo adapter.
+- Runtime/package version consistency check in the regression suite.
+- `npm run package:check` (`npm pack --dry-run`) and CI packaging gate on Node 20.
+
+### Changed
+- Adapter and server version metadata now use a single shared runtime version constant.
+- `prepublishOnly` now runs full verification (`coverage` + package dry-run).
+- README/TRUST/.env docs now include production-mode guidance.
+
 ## [1.0.1] - 2026-02-07
 
 ### Added

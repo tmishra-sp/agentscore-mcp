@@ -14,10 +14,11 @@ import {
   DEMO_THREAD_CONTENT,
   DEMO_THREAD_AUTHORS,
 } from "./agents.js";
+import { AGENTSCORE_VERSION } from "../../version.js";
 
 export class DemoAdapter implements AgentPlatformAdapter {
   readonly name = "demo";
-  readonly version = "1.0.0";
+  readonly version = AGENTSCORE_VERSION;
 
   async fetchProfile(handle: string): Promise<AgentProfile | null> {
     const agent = this.findAgent(handle);

@@ -35,3 +35,6 @@ jobs:
       - name: Coverage Gate
         if: matrix.node == '20.x'
         run: npm run coverage
+      - name: Package Dry Run
+        if: matrix.node == '20.x'
+        run: npm run package:check

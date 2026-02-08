@@ -8,11 +8,12 @@ import {
   mapCommentToContent,
   parseThreadId,
 } from "./mapper.js";
+import { AGENTSCORE_VERSION } from "../../version.js";
 
 /** GitHub platform adapter — scores any public GitHub account. */
 export class GitHubAdapter implements AgentPlatformAdapter {
   readonly name = "github";
-  readonly version = "1.0.0";
+  readonly version = AGENTSCORE_VERSION;
   private client: GitHubClient;
 
   constructor() {

@@ -8,6 +8,8 @@ Here's exactly what this server does and doesn't do.
 
 **Default mode (demo adapter): ZERO network requests.** All data is built-in.
 
+Set `AGENTSCORE_PUBLIC_MODE=true` to require an explicit non-demo adapter (`json`, `github`, or `moltbook`) for production use.
+
 When optional adapters are enabled:
 
 | Destination | Method | Purpose | When |

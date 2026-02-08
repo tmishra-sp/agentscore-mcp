@@ -1,11 +1,12 @@
 import type { AgentPlatformAdapter, AgentProfile, AgentContent } from "../types.js";
 import { MoltbookClient } from "./client.js";
 import type { MoltbookPost, MoltbookComment, MoltbookAuthor } from "./types.js";
+import { AGENTSCORE_VERSION } from "../../version.js";
 
 /** Moltbook platform adapter — the default adapter. */
 export class MoltbookAdapter implements AgentPlatformAdapter {
   readonly name = "moltbook";
-  readonly version = "1.0.0";
+  readonly version = AGENTSCORE_VERSION;
   private client: MoltbookClient;
 
   constructor() {

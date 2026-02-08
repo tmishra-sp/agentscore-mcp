@@ -11,6 +11,7 @@ import { ScoreCache } from "./cache/score-cache.js";
 import { loadConfig } from "./config.js";
 import { registerAgentScoreTool } from "./tools/agentscore.js";
 import { registerSweepTool } from "./tools/sweep.js";
+import { AGENTSCORE_VERSION } from "./version.js";
 
 async function main() {
   const config = loadConfig();
@@ -69,7 +70,7 @@ async function main() {
   // Create MCP server
   const server = new McpServer({
     name: "agentscore-mcp-server",
-    version: "1.0.0",
+    version: AGENTSCORE_VERSION,
   });
 
   // Register tools
@@ -82,6 +83,7 @@ async function main() {
 
   console.error("[agentscore] Server started — 2 tools registered (agentscore, sweep)");
   console.error("[agentscore] Adapter:", config.adapter);
+  console.error("[agentscore] Public mode:", config.publicMode ? "enabled" : "disabled");
   console.error("[agentscore] Cache TTL:", config.cacheTtl, "seconds");
 }
 

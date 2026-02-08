@@ -35,7 +35,9 @@
     "test": "npm run build && npm run test:suite",
     "coverage": "npm run build && c8 --all --exclude='examples/**' --exclude='dist/server.js' --exclude='dist/adapters/demo/agents.js' --exclude='dist/**/*.d.ts' --exclude='dist/**/*.map' --check-coverage --lines 60 --functions 65 --branches 60 --statements 60 npm run test:suite",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build",
+    "package:check": "npm pack --dry-run --cache .npm-cache",
+    "verify": "npm run coverage && npm run package:check",
+    "prepublishOnly": "npm run verify",
     "inspect": "npx @modelcontextprotocol/inspector tsx src/server.ts"
   },
   "dependencies": {

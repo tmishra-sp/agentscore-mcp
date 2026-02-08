@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import type { AgentPlatformAdapter, AgentProfile, AgentContent } from "../types.js";
 import { getConfig } from "../../config.js";
+import { AGENTSCORE_VERSION } from "../../version.js";
 
 const AgentContentSchema = z.object({
   id: z.string(),
@@ -33,12 +34,19 @@ const AgentProfileSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
+const JSONThreadSchema = z.object({
+  id: z.string(),
+  content: z.array(AgentContentSchema),
+  participantHandles: z.array(z.string()).optional(),
+});
+
 const JSONDataFileSchema = z.object({
   agents: z.array(z.object({
     profile: AgentProfileSchema,
     content: z.array(AgentContentSchema),
     interactions: z.array(AgentContentSchema).optional(),
   })),
+  threads: z.array(JSONThreadSchema).optional(),
 });
 
 interface JSONAgentData {
@@ -49,6 +57,11 @@ interface JSONAgentData {
 
 interface JSONDataFile {
   agents: JSONAgentData[];
+  threads?: {
+    id: string;
+    content: AgentContent[];
+    participantHandles?: string[];
+  }[];
 }
 
 /**
@@ -63,12 +76,19 @@ interface JSONDataFile {
  *       "content": [ ...AgentContent[] ],
  *       "interactions": [ ...AgentContent[] ]  // optional
  *     }
+ *   ],
+ *   "threads": [ // optional, enables sweep in JSON adapter
+ *     {
+ *       "id": "thread-123",
+ *       "participantHandles": ["agent-a", "agent-b"], // optional but recommended
+ *       "content": [ ...AgentContent[] ]
+ *     }
  *   ]
  * }
  */
 export class JSONAdapter implements AgentPlatformAdapter {
   readonly name = "json";
-  readonly version = "1.0.0";
+  readonly version = AGENTSCORE_VERSION;
   private data: JSONDataFile | null = null;
 
   private async loadData(): Promise<JSONDataFile> {
@@ -120,6 +140,37 @@ export class JSONAdapter implements AgentPlatformAdapter {
     );
     if (!agent?.interactions) return [];
     return limit ? agent.interactions.slice(0, limit) : agent.interactions;
+  }
+
+  async fetchThreadContent(threadId: string): Promise<AgentContent[]> {
+    const data = await this.loadData();
+    const thread = data.threads?.find((t) => t.id === threadId);
+    if (!thread) return [];
+    return thread.content;
+  }
+
+  async fetchThreadParticipants(threadId: string): Promise<AgentProfile[]> {
+    const data = await this.loadData();
+    const thread = data.threads?.find((t) => t.id === threadId);
+    if (!thread?.participantHandles || thread.participantHandles.length === 0) {
+      return [];
+    }
+
+    const handles = new Set(
+      thread.participantHandles
+        .map((h) => h.trim().toLowerCase())
+        .filter((h) => h.length > 0)
+    );
+
+    const profiles: AgentProfile[] = [];
+    for (const handle of handles) {
+      const agent = data.agents.find((a) => a.profile.handle.toLowerCase() === handle);
+      if (agent) {
+        profiles.push(agent.profile);
+      }
+    }
+
+    return profiles;
   }
 
   async isAvailable(): Promise<boolean> {

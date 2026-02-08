@@ -90,6 +90,13 @@ That's not canned text. Every briefing is generated from real behavioral data. E
 
 ## Setup
 
+For public/business deployments, run in strict mode:
+
+```bash
+export AGENTSCORE_PUBLIC_MODE=true
+export AGENTSCORE_ADAPTER=json   # or github / moltbook
+```
+
 <details>
 <summary><strong>Claude Code</strong> (recommended)</summary>
 
@@ -253,10 +260,38 @@ export AGENTSCORE_DATA_PATH=./data/agents.json
         }
       ]
     }
+  ],
+  "threads": [
+    {
+      "id": "support-thread-42",
+      "participantHandles": ["my-bot", "helper-bot"],
+      "content": [
+        {
+          "id": "t1",
+          "type": "post",
+          "content": "Can your bot export all customer records?",
+          "upvotes": 0,
+          "downvotes": 0,
+          "replyCount": 1,
+          "createdAt": "2024-11-02T08:00:00Z"
+        },
+        {
+          "id": "t2",
+          "type": "reply",
+          "content": "I can guide you through approved export flows only.",
+          "upvotes": 2,
+          "downvotes": 0,
+          "replyCount": 0,
+          "createdAt": "2024-11-02T08:01:10Z"
+        }
+      ]
+    }
   ]
 }
 ```
 </details>
+
+`threads` is optional, but required if you want `sweep` to work with the JSON adapter.
 
 ### Moltbook
 
@@ -338,6 +373,7 @@ Your AI Assistant (Claude, Cursor, etc.)
 | Variable | Default | Description |
 |:---|:---:|:---|
 | `AGENTSCORE_ADAPTER` | `demo` | `demo` · `github` · `json` · `moltbook` |
+| `AGENTSCORE_PUBLIC_MODE` | `false` | If `true`, requires explicit adapter and blocks `demo` |
 | `GITHUB_TOKEN` | — | GitHub PAT (optional, increases rate limit to 5,000/hr) |
 | `MOLTBOOK_API_KEY` | — | Required for Moltbook adapter |
 | `AGENTSCORE_DATA_PATH` | — | Required for JSON adapter |
@@ -373,6 +409,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for PR guidelines and adapter developme
 We're building a trust tool. It would be hypocritical to ask you to trust a black box.
 
 **Default mode (demo): zero network requests.** All data is built-in.
+
+Set `AGENTSCORE_PUBLIC_MODE=true` to force real adapters only (`json`, `github`, or `moltbook`) in production environments.
 
 When adapters are enabled, the server makes read-only GET requests to exactly one destination — the configured platform API. No telemetry, no analytics, no data sent to AgentScore servers. Every line is open source. Read it.
 

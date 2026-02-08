@@ -8,6 +8,7 @@ export interface Config {
   cacheTtl: number;
   rateLimitMs: number;
   siteUrl: string;
+  publicMode: boolean;
 }
 
 let _config: Config | null = null;
@@ -15,13 +16,28 @@ const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
-  const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "demo").trim();
-  if (!ADAPTERS.includes(rawAdapter as Config["adapter"])) {
+  const publicMode = (process.env.AGENTSCORE_PUBLIC_MODE || "").trim().toLowerCase() === "true";
+  const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "").trim();
+  const resolvedAdapter = rawAdapter || "demo";
+
+  if (publicMode && !rawAdapter) {
     throw new Error(
-      `AGENTSCORE_ADAPTER must be one of: ${ADAPTERS.join(", ")}. Received: "${rawAdapter || "<empty>"}".`
+      `AGENTSCORE_ADAPTER is required when AGENTSCORE_PUBLIC_MODE=true. Choose one of: ${ADAPTERS.join(", ")}.`
     );
   }
-  const adapter = rawAdapter as Config["adapter"];
+
+  if (!ADAPTERS.includes(resolvedAdapter as Config["adapter"])) {
+    throw new Error(
+      `AGENTSCORE_ADAPTER must be one of: ${ADAPTERS.join(", ")}. Received: "${resolvedAdapter || "<empty>"}".`
+    );
+  }
+  const adapter = resolvedAdapter as Config["adapter"];
+
+  if (publicMode && adapter === "demo") {
+    throw new Error(
+      "AGENTSCORE_PUBLIC_MODE=true does not allow AGENTSCORE_ADAPTER=demo. Use json, github, or moltbook."
+    );
+  }
   const dataPath = process.env.AGENTSCORE_DATA_PATH || "";
   const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://ai-agent-score.vercel.app";
 
@@ -76,6 +92,7 @@ export function loadConfig(): Config {
     cacheTtl: Number.isNaN(cacheTtl) ? 86400 : cacheTtl,
     rateLimitMs: Number.isNaN(rateLimitMs) ? 200 : rateLimitMs,
     siteUrl,
+    publicMode,
   };
 
   return _config;

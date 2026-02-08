@@ -4,10 +4,13 @@
  * Covers:
  * - Config NaN fallback
  * - Config adapter validation
+ * - Config public mode validation
  * - JSON adapter error on malformed file
+ * - JSON adapter thread support for sweep
  * - GitHub client 403 rate-limit retry behavior
  * - Sweep/agentscore zod schema validation
  * - Tier definitions match expected values
+ * - Runtime/package version consistency
  *
  * Run: node test/code-quality.test.mjs
  */
@@ -118,6 +121,41 @@ const validAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
 
 assert(validAdapterRun.status === 0, `Valid adapter loads config: ${validAdapterRun.status}`);
 
+const publicModeMissingAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "", AGENTSCORE_PUBLIC_MODE: "true" },
+  encoding: "utf-8",
+});
+
+assert(
+  publicModeMissingAdapterRun.status === 42,
+  `Public mode without adapter exits with code 42: ${publicModeMissingAdapterRun.status}`
+);
+assert(
+  (publicModeMissingAdapterRun.stderr || "").includes("AGENTSCORE_ADAPTER is required when AGENTSCORE_PUBLIC_MODE=true"),
+  "Public mode requires explicit adapter"
+);
+
+const publicModeDemoRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_PUBLIC_MODE: "true" },
+  encoding: "utf-8",
+});
+
+assert(
+  publicModeDemoRun.status === 42,
+  `Public mode with demo adapter exits with code 42: ${publicModeDemoRun.status}`
+);
+assert(
+  (publicModeDemoRun.stderr || "").includes("does not allow AGENTSCORE_ADAPTER=demo"),
+  "Public mode blocks demo adapter"
+);
+
+const publicModeRealAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "github", AGENTSCORE_PUBLIC_MODE: "true" },
+  encoding: "utf-8",
+});
+
+assert(publicModeRealAdapterRun.status === 0, `Public mode accepts real adapter: ${publicModeRealAdapterRun.status}`);
+
 // ═════════════════════════════════════════════════════════════════════
 // 3. JSON adapter error on malformed file
 // ═════════════════════════════════════════════════════════════════════
@@ -125,9 +163,11 @@ assert(validAdapterRun.status === 0, `Valid adapter loads config: ${validAdapter
 section("3. JSON Adapter Error Handling");
 
 import { JSONAdapter } from "../dist/adapters/json/adapter.js";
-import { writeFile, unlink } from "node:fs/promises";
+import { loadConfig } from "../dist/config.js";
+import { readFile, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { AGENTSCORE_VERSION } from "../dist/version.js";
 
 const badFilePath = join(tmpdir(), "agentscore-test-bad.json");
 
@@ -137,6 +177,7 @@ await writeFile(badFilePath, "{ this is not valid json !!!", "utf-8");
 // Override config to use our bad file
 process.env.AGENTSCORE_ADAPTER = "json";
 process.env.AGENTSCORE_DATA_PATH = badFilePath;
+loadConfig();
 
 const jsonAdapter = new JSONAdapter();
 try {
@@ -155,10 +196,104 @@ delete process.env.AGENTSCORE_ADAPTER;
 delete process.env.AGENTSCORE_DATA_PATH;
 
 // ═════════════════════════════════════════════════════════════════════
-// 4. GitHub client 403 rate-limit retry behavior
+// 4. JSON adapter thread support
 // ═════════════════════════════════════════════════════════════════════
 
-section("4. GitHub 403 Retry Behavior");
+section("4. JSON Adapter Thread Support");
+
+const threadFilePath = join(tmpdir(), "agentscore-test-threads.json");
+const threadFixture = {
+  agents: [
+    {
+      profile: {
+        handle: "my-bot",
+        displayName: "My Bot",
+        description: "support agent",
+        platform: "custom",
+        karma: 50,
+        followers: 5,
+        following: 2,
+        createdAt: "2024-01-01T00:00:00Z",
+        claimed: true,
+      },
+      content: [],
+      interactions: [],
+    },
+    {
+      profile: {
+        handle: "helper-bot",
+        displayName: "Helper Bot",
+        description: "helper agent",
+        platform: "custom",
+        karma: 40,
+        followers: 3,
+        following: 1,
+        createdAt: "2024-01-02T00:00:00Z",
+        claimed: true,
+      },
+      content: [],
+      interactions: [],
+    },
+  ],
+  threads: [
+    {
+      id: "support-thread-42",
+      participantHandles: ["my-bot", "helper-bot", "ghost-bot", "MY-BOT"],
+      content: [
+        {
+          id: "t1",
+          type: "post",
+          content: "Need help with export access.",
+          upvotes: 0,
+          downvotes: 0,
+          replyCount: 1,
+          createdAt: "2026-01-01T00:00:00Z",
+        },
+        {
+          id: "t2",
+          type: "reply",
+          content: "Use approved export flow only.",
+          upvotes: 1,
+          downvotes: 0,
+          replyCount: 0,
+          createdAt: "2026-01-01T00:01:00Z",
+        },
+      ],
+    },
+  ],
+};
+
+await writeFile(threadFilePath, JSON.stringify(threadFixture), "utf-8");
+process.env.AGENTSCORE_ADAPTER = "json";
+process.env.AGENTSCORE_DATA_PATH = threadFilePath;
+loadConfig();
+
+const threadAdapter = new JSONAdapter();
+const threadContent = await threadAdapter.fetchThreadContent("support-thread-42");
+assert(threadContent.length === 2, `Thread content resolved: ${threadContent.length}`);
+
+const threadParticipants = await threadAdapter.fetchThreadParticipants("support-thread-42");
+const participantHandles = threadParticipants.map((p) => p.handle).sort().join(",");
+assert(
+  participantHandles === "helper-bot,my-bot",
+  `Thread participants resolved from known handles: ${participantHandles}`
+);
+
+const missingThreadContent = await threadAdapter.fetchThreadContent("missing-thread");
+assert(missingThreadContent.length === 0, "Missing thread content returns []");
+
+const missingThreadParticipants = await threadAdapter.fetchThreadParticipants("missing-thread");
+assert(missingThreadParticipants.length === 0, "Missing thread participants return []");
+
+await unlink(threadFilePath).catch(() => {});
+delete process.env.AGENTSCORE_ADAPTER;
+delete process.env.AGENTSCORE_DATA_PATH;
+
+// ═════════════════════════════════════════════════════════════════════
+// 5. GitHub client 403 rate-limit retry behavior
+// ═════════════════════════════════════════════════════════════════════
+
+section("5. GitHub 403 Retry Behavior");
 
 const originalFetch = globalThis.fetch;
 let fetchCalls = 0;
@@ -205,10 +340,10 @@ try {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// 5. Sweep/agentscore zod schema validation
+// 6. Sweep/agentscore zod schema validation
 // ═════════════════════════════════════════════════════════════════════
 
-section("5. Zod Schema Validation");
+section("6. Zod Schema Validation");
 
 // Sweep threadId schema
 const sweepThreadIdSchema = z
@@ -270,10 +405,10 @@ assert(!handleSchema.safeParse("a".repeat(51)).success, "Invalid handle: too lon
 assert(!handleSchema.safeParse("has spaces").success, "Invalid handle: spaces");
 
 // ═════════════════════════════════════════════════════════════════════
-// 6. Tier definitions match expected values
+// 7. Tier definitions match expected values
 // ═════════════════════════════════════════════════════════════════════
 
-section("6. Tier Definitions");
+section("7. Tier Definitions");
 
 const expectedTiers = [
   { name: "Excellent", min: 750, max: 850, color: "#00E68A" },
@@ -309,6 +444,21 @@ assert(getTier(300).name === "Critical", "getTier(300) = Critical");
 // Clamping: out-of-range values
 assert(getTier(900).name === "Excellent", "getTier(900) clamped to Excellent");
 assert(getTier(100).name === "Critical", "getTier(100) clamped to Critical");
+
+// ═════════════════════════════════════════════════════════════════════
+// 8. Runtime/package version consistency
+// ═════════════════════════════════════════════════════════════════════
+
+section("8. Version Consistency");
+
+const packageJson = JSON.parse(
+  await readFile(new URL("../package.json", import.meta.url), "utf-8")
+);
+
+assert(
+  AGENTSCORE_VERSION === packageJson.version,
+  `Runtime version matches package.json: ${AGENTSCORE_VERSION}`
+);
 
 // ═════════════════════════════════════════════════════════════════════
 // Summary
