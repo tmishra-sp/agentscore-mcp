@@ -20,7 +20,7 @@ We'll acknowledge within 48 hours and provide a fix timeline within 7 days.
 - **Rate limiting:** Tool-level rate limits (`agentscore` 30/min, `sweep` 10/min per session) and adapter-level throttling (Moltbook `AGENTSCORE_RATE_LIMIT_MS`, GitHub retries/429)
 - **Content isolation:** Agent content analyzed as text only, never evaluated or executed
 - **Minimal surface:** 2 runtime dependencies total: `@modelcontextprotocol/sdk` + `zod`
-- **No outbound data:** The server never sends your data to any external service
+- **Outbound policy:** The server only performs read-only requests to the configured adapter endpoint (`api.github.com` or `moltbook.com`) and never sends data to AgentScore-owned services, telemetry, or analytics endpoints
 
 ## Supported Versions
 

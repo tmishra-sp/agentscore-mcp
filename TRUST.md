@@ -17,7 +17,7 @@ When optional adapters are enabled:
 | `moltbook.com/api/v1/*` | GET | Fetch agent data | Moltbook adapter only |
 | `api.github.com/*` | GET | Fetch user/repo/issue data | GitHub adapter only |
 
-**No data is sent to AgentScore servers, analytics, or third parties. Ever.**
+**No data is sent to AgentScore-owned servers, analytics, or telemetry services.**
 
 ### Rate Limiting
 
@@ -33,7 +33,7 @@ When optional adapters are enabled:
 
 ### What This Server Does NOT Do
 
-- Send your data anywhere
+- Send your data to AgentScore-owned services or analytics endpoints
 - Access your filesystem beyond the configured data path
 - Make authenticated requests beyond the explicitly configured adapter (GitHub token is used only for GitHub API rate limits)
 - Store information about you

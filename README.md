@@ -97,6 +97,8 @@ export AGENTSCORE_PUBLIC_MODE=true
 export AGENTSCORE_ADAPTER=json   # or github / moltbook
 ```
 
+AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch local `stdio` servers can use it (not only Cursor/Claude).
+
 <details>
 <summary><strong>Claude Code</strong> (recommended)</summary>
 
