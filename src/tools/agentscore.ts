@@ -6,6 +6,7 @@ import { scoreAgent, compareAgents } from "../scoring/engine.js";
 import { ScoreCache } from "../cache/score-cache.js";
 import { RateLimiter } from "../security/rate-limiter.js";
 import { resolveClientKey } from "../security/client-key.js";
+import { emitPolicyAudit, evaluateAgentPolicy, readPolicyConfigFromEnv } from "../security/policy.js";
 
 const inputSchema = {
   handles: z
@@ -28,6 +29,19 @@ interface AgentScoreOutput {
   agents: AgentScoreResult[];
   comparison?: ComparisonResult;
   errors?: AgentScoreError[];
+  policyGate?: {
+    enforced: boolean;
+    blocked: boolean;
+    reasons: string[];
+    policy: {
+      minScore: number;
+      blockedRecommendations: Array<"TRUST" | "CAUTION" | "AVOID">;
+      blockedThreatLevels: Array<"SUSPICIOUS" | "COMPROMISED">;
+      blockedFlagPatterns: string[];
+      trustedAdapters: string[];
+      failOnErrors: boolean;
+    };
+  };
 }
 
 const rateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 30 });
@@ -138,6 +152,30 @@ export function registerAgentScoreTool(
         output.errors = errors;
       }
 
+      const policy = readPolicyConfigFromEnv();
+      const gate = evaluateAgentPolicy(
+        {
+          adapter: adapter.name,
+          results,
+          errorsCount: errors.length,
+        },
+        policy
+      );
+      if (policy.enforce) {
+        output.policyGate = gate;
+      }
+      emitPolicyAudit(
+        "agentscore",
+        gate,
+        {
+          adapter: adapter.name,
+          requestedHandles: handles.length,
+          scoredHandles: results.length,
+          errorsCount: errors.length,
+        },
+        policy
+      );
+
       // Build text summary
       const textParts: string[] = [];
 
@@ -168,6 +206,24 @@ export function registerAgentScoreTool(
 
       if (output.comparison?.verdict) {
         textParts.push(`\n## Comparison Verdict\n\n${output.comparison.verdict}`);
+      }
+
+      if (gate.blocked) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `Policy gate blocked this request.\n` +
+                `Adapter: ${adapter.name}\n` +
+                `Reasons:\n` +
+                gate.reasons.map((reason) => `- ${reason}`).join("\n"),
+            },
+            { type: "text" as const, text: textParts.join("\n\n---\n\n") || "No agents scored." },
+            { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+          ],
+          isError: true,
+        };
       }
 
       if (results.length === 0) {

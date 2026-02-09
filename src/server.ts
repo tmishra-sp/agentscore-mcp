@@ -14,6 +14,9 @@ import { registerSweepTool } from "./tools/sweep.js";
 import { AGENTSCORE_VERSION } from "./version.js";
 
 async function main() {
+  if (process.argv.includes("--enforce") && !process.env.AGENTSCORE_ENFORCE) {
+    process.env.AGENTSCORE_ENFORCE = "true";
+  }
   const config = loadConfig();
 
   // Initialize adapter

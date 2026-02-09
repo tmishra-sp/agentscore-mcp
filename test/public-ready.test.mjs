@@ -106,10 +106,48 @@ for (let i = 0; i < 35; i++) {
 assert(lastResponse && lastResponse.isError !== true, "No-session calls are not globally rate-limited");
 
 // ═════════════════════════════════════════════════════════════════════
-// 3. compareAgents guard when categories are missing
+// 3. agentscore enforce mode blocks unsafe requests
 // ═════════════════════════════════════════════════════════════════════
 
-section("3. compareAgents Guard Without Categories");
+section("3. agentscore Enforce Mode");
+
+const oldEnforce = process.env.AGENTSCORE_ENFORCE;
+const oldMinScore = process.env.AGENTSCORE_POLICY_MIN_SCORE;
+const oldTrusted = process.env.AGENTSCORE_POLICY_TRUSTED_ADAPTERS;
+
+process.env.AGENTSCORE_ENFORCE = "true";
+process.env.AGENTSCORE_POLICY_MIN_SCORE = "850";
+process.env.AGENTSCORE_POLICY_TRUSTED_ADAPTERS = "github";
+
+const blockedResponse = await handler({ handles: ["ok"] });
+const blockedPayload = parseJsonFromContent(blockedResponse.content);
+
+assert(blockedResponse.isError === true, "Enforce mode blocks non-compliant agentscore requests");
+assert(
+  blockedResponse.content[0].text.includes("Policy gate blocked this request."),
+  "Blocked response includes policy gate message"
+);
+assert(
+  blockedPayload?.policyGate?.blocked === true,
+  "Blocked agentscore output includes policyGate.blocked=true"
+);
+assert(
+  Array.isArray(blockedPayload?.policyGate?.reasons) && blockedPayload.policyGate.reasons.length > 0,
+  "Blocked agentscore output includes at least one policy reason"
+);
+
+if (oldEnforce === undefined) delete process.env.AGENTSCORE_ENFORCE;
+else process.env.AGENTSCORE_ENFORCE = oldEnforce;
+if (oldMinScore === undefined) delete process.env.AGENTSCORE_POLICY_MIN_SCORE;
+else process.env.AGENTSCORE_POLICY_MIN_SCORE = oldMinScore;
+if (oldTrusted === undefined) delete process.env.AGENTSCORE_POLICY_TRUSTED_ADAPTERS;
+else process.env.AGENTSCORE_POLICY_TRUSTED_ADAPTERS = oldTrusted;
+
+// ═════════════════════════════════════════════════════════════════════
+// 4. compareAgents guard when categories are missing
+// ═════════════════════════════════════════════════════════════════════
+
+section("4. compareAgents Guard Without Categories");
 
 const comparison = compareAgents([
   { handle: "alpha", score: 620, categories: [], recommendation: "TRUST" },
@@ -122,10 +160,10 @@ assert(
 );
 
 // ═════════════════════════════════════════════════════════════════════
-// 4. sweep fallback when participant profiles are unavailable
+// 5. sweep fallback when participant profiles are unavailable
 // ═════════════════════════════════════════════════════════════════════
 
-section("4. sweep Fallback Without Participants");
+section("5. sweep Fallback Without Participants");
 
 let sweepHandler;
 const fakeSweepServer = {
@@ -191,6 +229,40 @@ assert(
   sweepPayload && sweepPayload.threatLevel === "SUSPICIOUS",
   "Threat level still computed from thread patterns"
 );
+
+// ═════════════════════════════════════════════════════════════════════
+// 6. sweep enforce mode blocks risky threads
+// ═════════════════════════════════════════════════════════════════════
+
+section("6. sweep Enforce Mode");
+
+const oldSweepEnforce = process.env.AGENTSCORE_ENFORCE;
+const oldSweepThreats = process.env.AGENTSCORE_POLICY_BLOCK_THREAT_LEVELS;
+
+process.env.AGENTSCORE_ENFORCE = "true";
+process.env.AGENTSCORE_POLICY_BLOCK_THREAT_LEVELS = "SUSPICIOUS,COMPROMISED";
+
+const blockedSweepResponse = await sweepHandler({ threadId: "demo-thread-xyz" });
+const blockedSweepPayload = parseJsonFromContent(blockedSweepResponse.content);
+
+assert(blockedSweepResponse.isError === true, "Enforce mode blocks risky sweep requests");
+assert(
+  blockedSweepResponse.content[0].text.includes("Policy gate blocked this thread sweep."),
+  "Blocked sweep response includes policy gate message"
+);
+assert(
+  blockedSweepPayload?.policyGate?.blocked === true,
+  "Blocked sweep output includes policyGate.blocked=true"
+);
+assert(
+  blockedSweepPayload?.policyGate?.reasons?.some((reason) => reason.includes("Threat level")),
+  "Blocked sweep output includes threat-level reason"
+);
+
+if (oldSweepEnforce === undefined) delete process.env.AGENTSCORE_ENFORCE;
+else process.env.AGENTSCORE_ENFORCE = oldSweepEnforce;
+if (oldSweepThreats === undefined) delete process.env.AGENTSCORE_POLICY_BLOCK_THREAT_LEVELS;
+else process.env.AGENTSCORE_POLICY_BLOCK_THREAT_LEVELS = oldSweepThreats;
 
 // ═════════════════════════════════════════════════════════════════════
 // Summary
