@@ -4,7 +4,7 @@ export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
   transport: "stdio" | "http";
   enabledTools: Array<"agentscore" | "sweep">;
-  reportUrlMode: "always" | "demo-only";
+  reportUrlMode: "none" | "always" | "demo-only";
   moltbookApiKey: string;
   githubToken: string;
   dataPath: string;
@@ -24,7 +24,7 @@ let _config: Config | null = null;
 const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 const TRANSPORTS: Config["transport"][] = ["stdio", "http"];
 const TOOLS: Config["enabledTools"] = ["agentscore", "sweep"];
-const REPORT_URL_MODES: Config["reportUrlMode"][] = ["always", "demo-only"];
+const REPORT_URL_MODES: Config["reportUrlMode"][] = ["none", "always", "demo-only"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
@@ -40,7 +40,7 @@ export function loadConfig(): Config {
   const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "").trim();
   const resolvedAdapter = rawAdapter || "demo";
   const rawReportUrlMode = (process.env.AGENTSCORE_REPORT_URL_MODE || "").trim().toLowerCase();
-  const resolvedReportUrlMode = rawReportUrlMode || "demo-only";
+  const resolvedReportUrlMode = rawReportUrlMode || "none";
 
   if (publicMode && !rawAdapter) {
     throw new Error(

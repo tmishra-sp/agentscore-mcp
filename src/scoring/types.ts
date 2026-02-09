@@ -23,6 +23,9 @@ export interface AgentScoreResult {
     shields: string;
     text: string;
   };
+  artifacts: {
+    governanceCardHtml: string;
+  };
   scoredAt: string;
   reportUrl?: string;
 }

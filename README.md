@@ -218,7 +218,7 @@ AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch
 | Codex-compatible MCP clients | Yes |
 | Any MCP host with local `stdio` support | Yes |
 
-Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is currently a public trust index/leaderboard experience. MCP `reportUrl` links are handle-based and resolve when that handle exists in the site index. By default, report links are emitted for `demo` agents only to avoid dead links for custom/private handles.
+Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is a separate public trust index/leaderboard experience. MCP output suppresses public report links by default to avoid dead links for private or custom handles.
 
 ### Centralized Service Mode (Streamable HTTP)
 
@@ -570,7 +570,7 @@ flowchart LR
 | `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
 | `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Base URL for report links in MCP output |
-| `AGENTSCORE_REPORT_URL_MODE` | `demo-only` | Report link policy: `demo-only` (default) or `always` |
+| `AGENTSCORE_REPORT_URL_MODE` | `none` | Report link policy: `none` (default), `demo-only`, or `always` |
 | `AGENTSCORE_HTTP_HOST` | `127.0.0.1` | Bind host for HTTP transport |
 | `AGENTSCORE_HTTP_PORT` | `8787` | Bind port for HTTP transport |
 | `AGENTSCORE_HTTP_PATH` | `/mcp` | MCP endpoint path for HTTP transport |
