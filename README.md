@@ -369,6 +369,7 @@ npm run inspect      # Interactive testing with MCP Inspector
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for PR guidelines and adapter development.
 Release process: [`RELEASING.md`](RELEASING.md)
+Releases are provenance-enabled and support npm trusted publishing via GitHub Actions.
 
 Benchmark details and dataset format: [`benchmarks/README.md`](benchmarks/README.md)
 Launch distribution assets: [`marketing/launch-kit.md`](marketing/launch-kit.md)

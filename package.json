@@ -16,9 +16,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/tmishra-sp/agentscore-mcp"
+    "url": "git+https://github.com/tmishra-sp/agentscore-mcp.git"
   },
   "homepage": "https://ai-agent-score.vercel.app",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "type": "module",
   "main": "dist/server.js",
   "bin": {
