@@ -42,6 +42,7 @@ This opens the MCP Inspector where you can test both tools interactively.
 - **No new runtime deps** without discussion in an issue first
 - **Keep it focused:** One feature or fix per PR
 - **Test both tools** with MCP Inspector before submitting
+- **PR-only to `main`:** open a pull request for all changes (no direct pushes)
 
 ## Code of Conduct
 

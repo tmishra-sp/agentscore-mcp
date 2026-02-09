@@ -1,0 +1,63 @@
+name: Smoke
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-startup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20.x"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Package integrity check
+        run: npm pack --dry-run --silent
+      - name: MCP startup smoke test
+        run: |
+          node --input-type=module <<'NODE'
+          import { spawn } from "node:child_process";
+          import { setTimeout as sleep } from "node:timers/promises";
+
+          const child = spawn("node", ["dist/server.js"], {
+            stdio: ["ignore", "ignore", "pipe"],
+          });
+
+          let stderr = "";
+          child.stderr.on("data", (chunk) => {
+            stderr += chunk.toString();
+          });
+
+          await sleep(5000);
+
+          if (child.exitCode !== null && child.exitCode !== 0) {
+            console.error(`Server exited unexpectedly with code ${child.exitCode}`);
+            console.error(stderr);
+            process.exit(1);
+          }
+
+          if (!stderr.includes("Server started")) {
+            console.error("Startup marker not found in server stderr output.");
+            console.error(stderr);
+            process.exit(1);
+          }
+
+          child.kill("SIGTERM");
+          await sleep(300);
+          if (child.exitCode === null) {
+            child.kill("SIGKILL");
+          }
+          NODE

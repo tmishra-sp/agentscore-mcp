@@ -9,3 +9,4 @@ dist/
 coverage/
 .npm-cache/
 benchmarks/results/*.json
+.mcp.json

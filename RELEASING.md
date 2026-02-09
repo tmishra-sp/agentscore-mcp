@@ -13,7 +13,7 @@
 
 ## Standard Release Flow
 
-1. Prepare changes and merge to `main`.
+1. Prepare changes on a branch and merge via PR to `main` (no direct pushes).
 2. Bump version locally:
 
 ```bash
@@ -51,6 +51,8 @@ The release workflow will:
 - run full verification
 - publish to npm with provenance
 - prefer trusted publishing (OIDC), fallback to `NPM_TOKEN` if present
+
+Note: release automation is tag-only (`v*`). Pushes to `main` do not publish.
 
 ## Emergency Manual Publish (Fallback)
 

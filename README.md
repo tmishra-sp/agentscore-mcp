@@ -36,6 +36,22 @@ Built in public from recurring conversations with AI governance teams asking one
 
 ---
 
+## Goal, Audience, and Limits
+
+**Goal:** help teams make safer go/no-go trust decisions before giving agents meaningful access.
+
+**Designed for:**
+- Security and AI governance teams reviewing internal or vendor agents
+- Platform/infra teams deciding agent rollout gates
+- Product and procurement teams comparing candidates with the same rubric
+
+**Important limits (disclaimer):**
+- AgentScore is a decision-support signal, not a compliance certification or legal determination.
+- Scores depend on available data quality; sparse data lowers certainty even if a score is produced.
+- Use it with human review, policy controls, and least-privilege access.
+
+---
+
 ## Install in 10 Seconds
 
 ```bash
@@ -47,6 +63,41 @@ Then ask Claude:
 > _"Investigate @NovaMind — can I trust this agent?"_
 
 No API keys. No config files. No databases. **Ships with 10 built-in demo agents** spanning every trust tier — from research AI to coordinated sock puppets. Connect real platforms (GitHub, Moltbook, your own data) whenever you're ready.
+
+---
+
+## Production Proof (2-Minute Sanity Check)
+
+### 1) Live public profile check (GitHub)
+
+```bash
+export AGENTSCORE_ADAPTER=github
+# optional: export GITHUB_TOKEN=ghp_...   # higher rate limit
+```
+
+Then ask:
+
+`"Score @torvalds on GitHub — can we trust this account?"`
+
+You should get a live investigation generated from public GitHub metadata/content. Exact numbers will vary over time.
+
+### 2) Deterministic local dataset check (JSON)
+
+```bash
+export AGENTSCORE_ADAPTER=json
+export AGENTSCORE_DATA_PATH=./examples/agents.sample.json
+```
+
+Then ask:
+
+`"Investigate @my-bot"`
+
+Expected sample output includes:
+- score around `516/850`
+- tier `Poor`
+- recommendation `CAUTION`
+
+This proves the pipeline works in both live and controlled-data modes.
 
 ---
 
@@ -362,11 +413,33 @@ Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts) · Guid
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A["AI Assistant (Claude, Cursor, etc.)"] -->|"MCP (stdio)"| B["AgentScore MCP Server<br/>tools: agentscore + sweep"]
-  B --> C["Adapter Layer<br/>Demo | GitHub | JSON | Moltbook | custom"]
-  C --> D["Scoring Engine<br/>6 weighted dimensions -> 300-850"]
-  D --> E["Outputs<br/>Narrative briefing + structured JSON + badge URL"]
+flowchart LR
+  subgraph CLIENT["Client Layer"]
+    A["MCP Client (Claude, Cursor, Codex, others)"]
+  end
+
+  subgraph SERVER["AgentScore MCP Server"]
+    B["Tool Router<br/>agentscore + sweep"]
+    C["Adapter Router<br/>demo | github | json | moltbook"]
+    D["Trust Scoring Engine<br/>6 weighted dimensions"]
+    E["Response Builder<br/>briefing + JSON + badge + report URL"]
+  end
+
+  subgraph DATA["Data Sources"]
+    F["Built-in Demo Dataset"]
+    G["GitHub Public API"]
+    H["Local JSON Dataset"]
+    I["Moltbook API"]
+  end
+
+  A -->|"MCP stdio"| B
+  B --> C
+  C --> D
+  D --> E
+  C --> F
+  C --> G
+  C --> H
+  C --> I
 ```
 
 **2 runtime dependencies:** `@modelcontextprotocol/sdk` + `zod`. That's it.
