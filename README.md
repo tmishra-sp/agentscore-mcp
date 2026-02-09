@@ -44,11 +44,13 @@
 
 ## Why This Exists
 
-You're about to give AI agents access to customer data, source code, and critical workflows.
-Most teams still have no shared way to answer: _is this agent trustworthy, drifting, or compromised?_
-AgentScore gives your assistant a concrete trust signal before that agent gets real access.
+At the [Business Transformation World Summit in Miami](https://www.processexcellencenetwork.com/events-business-transformation-world-summit/agenda-mc), the same question kept coming up in agentic AI conversations:
+_How do we know which agents to trust?_
 
-Built in public from recurring conversations with AI governance teams asking one question: **"How do we know which agents to trust?"**
+Everyone had governance frameworks. Nobody had an answer you could run in 10 seconds.
+So I built one.
+
+— [Tripti Mishra](https://www.linkedin.com/in/triptimishra1/)
 
 ---
 
@@ -137,16 +139,20 @@ This proves the pipeline works in both live and controlled-data modes.
 
 ---
 
-## What Makes AgentScore Different
+## This Is Not a Security Scanner
 
-`mcp-scan`-style tools answer: **"Is this MCP server vulnerable?"**
-AgentScore answers: **"Is this agent trustworthy?"**
+Tools like [`mcp-scan`](https://github.com/invariantlabs-ai/mcp-scan) check whether **MCP servers** are vulnerable.
+AgentScore checks whether **agents themselves** are trustworthy.
 
-Think of it this way:
-- Security scanners tell you the airplane passed inspection.
-- AgentScore tells you whether you'd trust the pilot.
+**mcp-scan tells you the airplane passed inspection. AgentScore tells you whether you'd trust the pilot.**
 
-You need both.
+| Category | What They Do | What AgentScore Does |
+|:---|:---|:---|
+| MCP security scanners | Scan server code for prompt injection and tool-surface vulnerabilities | Score agent behavior: consistency, manipulation signals, and trust patterns |
+| Agent evaluation frameworks | Test whether agents use tools correctly | Test whether agents are trustworthy entities worth relying on |
+| Governance platforms | Enforce policy, access controls, and audit trails | Provide the investigation signal that tells you which policies to set |
+
+AgentScore sits upstream: investigate first, then govern.
 
 ---
 
