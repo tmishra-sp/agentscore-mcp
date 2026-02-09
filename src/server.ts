@@ -70,25 +70,44 @@ function buildAdapterResolver(config: ReturnType<typeof loadConfig>): (platform?
 
 function buildMcpServer(
   getAdapter: (platform?: string) => AgentPlatformAdapter,
-  cache: ScoreCache
+  cache: ScoreCache,
+  enabledTools: Array<"agentscore" | "sweep">
 ): McpServer {
   const server = new McpServer({
     name: "agentscore-mcp-server",
     version: AGENTSCORE_VERSION,
   });
-  registerAgentScoreTool(server, getAdapter, cache);
-  registerSweepTool(server, getAdapter, cache);
+  if (enabledTools.includes("agentscore")) {
+    registerAgentScoreTool(server, getAdapter, cache);
+  }
+  if (enabledTools.includes("sweep")) {
+    registerSweepTool(server, getAdapter, cache);
+  }
   return server;
 }
 
-function isAuditAuthorized(req: { headers: Record<string, unknown> }, expectedToken: string): boolean {
+function isTokenAuthorized(
+  req: { headers: Record<string, unknown> },
+  expectedToken: string,
+  alternateHeaders: string[] = []
+): boolean {
   if (!expectedToken) return true;
   const auth = req.headers.authorization;
   if (typeof auth === "string" && auth.startsWith("Bearer ")) {
     return auth.slice("Bearer ".length) === expectedToken;
   }
-  const customHeader = req.headers["x-agentscore-audit-token"];
-  return typeof customHeader === "string" && customHeader === expectedToken;
+  return alternateHeaders.some((headerName) => {
+    const customHeader = req.headers[headerName];
+    return typeof customHeader === "string" && customHeader === expectedToken;
+  });
+}
+
+function writeUnauthorizedMcpResponse(res: { status: (code: number) => { json: (body: unknown) => void } }): void {
+  res.status(401).json({
+    jsonrpc: "2.0",
+    error: { code: -32001, message: "Unauthorized" },
+    id: null,
+  });
 }
 
 async function startStdioServer(
@@ -96,10 +115,12 @@ async function startStdioServer(
   getAdapter: (platform?: string) => AgentPlatformAdapter,
   cache: ScoreCache
 ): Promise<void> {
-  const server = buildMcpServer(getAdapter, cache);
+  const server = buildMcpServer(getAdapter, cache, config.enabledTools);
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[agentscore] Server started — 2 tools registered (agentscore, sweep)");
+  console.error(
+    `[agentscore] Server started — ${config.enabledTools.length} tool(s) registered (${config.enabledTools.join(", ")})`
+  );
   console.error("[agentscore] Transport: stdio");
   console.error("[agentscore] Adapter:", config.adapter);
   console.error("[agentscore] Public mode:", config.publicMode ? "enabled" : "disabled");
@@ -126,7 +147,7 @@ async function startHttpServer(
   });
 
   app.get("/agentscore/policy", (req: any, res: any) => {
-    if (!isAuditAuthorized(req, config.auditToken)) {
+    if (!isTokenAuthorized(req, config.auditToken, ["x-agentscore-audit-token"])) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -144,7 +165,7 @@ async function startHttpServer(
   });
 
   app.get("/agentscore/audit", (req: any, res: any) => {
-    if (!isAuditAuthorized(req, config.auditToken)) {
+    if (!isTokenAuthorized(req, config.auditToken, ["x-agentscore-audit-token"])) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -168,6 +189,10 @@ async function startHttpServer(
   });
 
   app.post(config.httpPath, async (req: any, res: any) => {
+    if (!isTokenAuthorized(req, config.httpAuthToken, ["x-agentscore-mcp-token", "x-agentscore-token"])) {
+      writeUnauthorizedMcpResponse(res);
+      return;
+    }
     try {
       const sessionId = req.headers["mcp-session-id"];
       let session = typeof sessionId === "string" ? sessions[sessionId] : undefined;
@@ -191,7 +216,7 @@ async function startHttpServer(
           return;
         }
 
-        const server = buildMcpServer(getAdapter, cache);
+        const server = buildMcpServer(getAdapter, cache, config.enabledTools);
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (newSessionId) => {
@@ -218,6 +243,10 @@ async function startHttpServer(
   });
 
   app.get(config.httpPath, async (req: any, res: any) => {
+    if (!isTokenAuthorized(req, config.httpAuthToken, ["x-agentscore-mcp-token", "x-agentscore-token"])) {
+      writeUnauthorizedMcpResponse(res);
+      return;
+    }
     const sessionId = req.headers["mcp-session-id"];
     if (typeof sessionId !== "string" || !sessions[sessionId]) {
       res.status(400).json({
@@ -231,6 +260,10 @@ async function startHttpServer(
   });
 
   app.delete(config.httpPath, async (req: any, res: any) => {
+    if (!isTokenAuthorized(req, config.httpAuthToken, ["x-agentscore-mcp-token", "x-agentscore-token"])) {
+      writeUnauthorizedMcpResponse(res);
+      return;
+    }
     const sessionId = req.headers["mcp-session-id"];
     if (typeof sessionId !== "string" || !sessions[sessionId]) {
       res.status(400).json({
@@ -248,11 +281,14 @@ async function startHttpServer(
   });
 
   const listener = app.listen(config.httpPort, config.httpHost, () => {
-    console.error("[agentscore] Server started — 2 tools registered (agentscore, sweep)");
+    console.error(
+      `[agentscore] Server started — ${config.enabledTools.length} tool(s) registered (${config.enabledTools.join(", ")})`
+    );
     console.error("[agentscore] Transport: streamable-http");
     console.error("[agentscore] MCP endpoint:", `http://${config.httpHost}:${config.httpPort}${config.httpPath}`);
     console.error("[agentscore] Audit endpoint:", `http://${config.httpHost}:${config.httpPort}/agentscore/audit`);
     console.error("[agentscore] Policy endpoint:", `http://${config.httpHost}:${config.httpPort}/agentscore/policy`);
+    console.error("[agentscore] MCP endpoint auth:", config.httpAuthToken ? "enabled" : "disabled");
     console.error("[agentscore] Adapter:", config.adapter);
     console.error("[agentscore] Public mode:", config.publicMode ? "enabled" : "disabled");
     console.error("[agentscore] Cache TTL:", config.cacheTtl, "seconds");
