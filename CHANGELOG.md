@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-02-09
+
+### Added
+- Tag-driven npm release workflow (`.github/workflows/release.yml`) with version/tag validation and full verification gates.
+- Public contract regression suite (`test/public-contract.test.mjs`) to enforce README install/npm link correctness and report URL shape.
+- JSON sample data file for README reference (`examples/agents.sample.json`).
+- Launch kit assets for distribution (`marketing/launch-kit.md`).
+
+### Changed
+- Report URLs now use handle-based routes (`/agent/{handle}`) to match the public site route shape.
+- README now clarifies the public site role (index/leaderboard) and report-link behavior.
+
 ## [1.0.2] - 2026-02-08
 
 ### Added

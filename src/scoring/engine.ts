@@ -54,6 +54,7 @@ export function scoreAgent(
   const config = getConfig();
   const badgeColor = tier.color.replace("#", "");
   const badgeLabel = `AgentScore-${score}%2F850-${badgeColor}`;
+  const encodedHandle = encodeURIComponent(profile.handle);
 
   return {
     handle: profile.handle,
@@ -71,7 +72,8 @@ export function scoreAgent(
       text: `AgentScore: ${score}/850 (${tier.name})`,
     },
     scoredAt: new Date().toISOString(),
-    reportUrl: `${config.siteUrl}/agent/${profile.platform}/${profile.handle}`,
+    // Public site report routes are handle-based today.
+    reportUrl: `${config.siteUrl}/agent/${encodedHandle}`,
   };
 }
 

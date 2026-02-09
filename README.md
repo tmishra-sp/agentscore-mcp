@@ -122,6 +122,8 @@ export AGENTSCORE_ADAPTER=json   # or github / moltbook
 
 AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch local `stdio` servers can use it (not only Cursor/Claude).
 
+Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is currently a public trust index/leaderboard experience. MCP `reportUrl` links are handle-based and resolve when that handle exists in the site index.
+
 <details>
 <summary><strong>Claude Code</strong> (recommended)</summary>
 
@@ -342,7 +344,7 @@ flowchart TD
 | `AGENTSCORE_DATA_PATH` | — | Required for JSON adapter |
 | `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
-| `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Web dashboard URL |
+| `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Base URL for report links in MCP output |
 
 Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically. `AGENTSCORE_SITE_URL` must be a valid `https://` URL.
 
@@ -366,8 +368,10 @@ npm run inspect      # Interactive testing with MCP Inspector
 ```
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for PR guidelines and adapter development.
+Release process: [`RELEASING.md`](RELEASING.md)
 
 Benchmark details and dataset format: [`benchmarks/README.md`](benchmarks/README.md)
+Launch distribution assets: [`marketing/launch-kit.md`](marketing/launch-kit.md)
 
 ---
 
