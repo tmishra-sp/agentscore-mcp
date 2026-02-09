@@ -34,6 +34,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
+    "start:http": "AGENTSCORE_TRANSPORT=http node dist/server.js",
     "dev": "tsx src/server.ts",
     "test:suite": "node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs && node test/adapter-contract.test.mjs && node test/public-contract.test.mjs",
     "test": "npm run build && npm run test:suite",

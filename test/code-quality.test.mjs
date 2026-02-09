@@ -121,6 +121,17 @@ const validAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
 
 assert(validAdapterRun.status === 0, `Valid adapter loads config: ${validAdapterRun.status}`);
 
+const badTransportRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_TRANSPORT: "socket" },
+  encoding: "utf-8",
+});
+
+assert(badTransportRun.status === 42, `Invalid transport exits with code 42: ${badTransportRun.status}`);
+assert(
+  (badTransportRun.stderr || "").includes("AGENTSCORE_TRANSPORT must be one of"),
+  "Invalid transport error message is explicit"
+);
+
 const publicModeMissingAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
   env: { ...process.env, AGENTSCORE_ADAPTER: "", AGENTSCORE_PUBLIC_MODE: "true" },
   encoding: "utf-8",

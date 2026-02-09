@@ -220,6 +220,36 @@ AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch
 
 Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is currently a public trust index/leaderboard experience. MCP `reportUrl` links are handle-based and resolve when that handle exists in the site index.
 
+### Centralized Service Mode (Streamable HTTP)
+
+Run one shared governance endpoint for multiple clients:
+
+```bash
+export AGENTSCORE_TRANSPORT=http
+export AGENTSCORE_HTTP_HOST=127.0.0.1
+export AGENTSCORE_HTTP_PORT=8787
+export AGENTSCORE_HTTP_PATH=/mcp
+export AGENTSCORE_ENFORCE=true
+export AGENTSCORE_POLICY_MIN_SCORE=650
+node dist/server.js
+```
+
+Service endpoints:
+- MCP: `http://127.0.0.1:8787/mcp`
+- Health: `http://127.0.0.1:8787/healthz`
+- Policy snapshot: `http://127.0.0.1:8787/agentscore/policy`
+- Audit events: `http://127.0.0.1:8787/agentscore/audit`
+
+Optionally protect policy/audit endpoints:
+
+```bash
+export AGENTSCORE_AUDIT_TOKEN=replace-with-strong-token
+```
+
+Then call with either:
+- `Authorization: Bearer <token>`
+- `x-agentscore-audit-token: <token>`
+
 ### Clean Onboarding (Recommended)
 
 Use a single setup command and verify once:
@@ -513,6 +543,7 @@ flowchart LR
 | Variable | Default | Description |
 |:---|:---:|:---|
 | `AGENTSCORE_ADAPTER` | `demo` | `demo` · `github` · `json` · `moltbook` |
+| `AGENTSCORE_TRANSPORT` | `stdio` | `stdio` or `http` (Streamable HTTP server mode) |
 | `AGENTSCORE_PUBLIC_MODE` | `false` | If `true`, requires explicit adapter and blocks `demo` |
 | `GITHUB_TOKEN` | — | GitHub PAT (optional, increases rate limit to 5,000/hr) |
 | `MOLTBOOK_API_KEY` | — | Required for Moltbook adapter |
@@ -520,6 +551,11 @@ flowchart LR
 | `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
 | `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Base URL for report links in MCP output |
+| `AGENTSCORE_HTTP_HOST` | `127.0.0.1` | Bind host for HTTP transport |
+| `AGENTSCORE_HTTP_PORT` | `8787` | Bind port for HTTP transport |
+| `AGENTSCORE_HTTP_PATH` | `/mcp` | MCP endpoint path for HTTP transport |
+| `AGENTSCORE_AUDIT_TOKEN` | — | Optional bearer token required for policy/audit endpoints |
+| `AGENTSCORE_AUDIT_MAX_ENTRIES` | `500` | In-memory cap for retained policy audit events |
 | `AGENTSCORE_ENFORCE` | `false` | If `true`, policy gate can block risky results |
 | `AGENTSCORE_POLICY_MIN_SCORE` | `550` | Minimum allowed score when policy is enforced |
 | `AGENTSCORE_POLICY_BLOCK_RECOMMENDATIONS` | `AVOID` | Comma-separated blocked recommendations (`TRUST`, `CAUTION`, `AVOID`) |
