@@ -42,9 +42,10 @@ const packageName = pkg.name;
 
 const installMatches = [...readme.matchAll(/npx -y ([\w@./-]+)/g)];
 assert(installMatches.length >= 1, "README contains npx install command");
+const agentScoreInstallMatches = installMatches.filter((m) => m[1] === packageName);
 assert(
-  installMatches.every((m) => m[1] === packageName),
-  `README install command uses package name (${packageName})`
+  agentScoreInstallMatches.length >= 1,
+  `README includes install command using package name (${packageName})`
 );
 
 assert(

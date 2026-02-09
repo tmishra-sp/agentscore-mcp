@@ -226,6 +226,7 @@ Run one shared governance endpoint for multiple clients:
 
 ```bash
 export AGENTSCORE_TRANSPORT=http
+export AGENTSCORE_ENABLED_TOOLS=agentscore,sweep
 export AGENTSCORE_HTTP_HOST=127.0.0.1
 export AGENTSCORE_HTTP_PORT=8787
 export AGENTSCORE_HTTP_PATH=/mcp
@@ -240,6 +241,17 @@ Service endpoints:
 - Policy snapshot: `http://127.0.0.1:8787/agentscore/policy`
 - Audit events: `http://127.0.0.1:8787/agentscore/audit`
 
+Optionally protect the MCP endpoint itself:
+
+```bash
+export AGENTSCORE_HTTP_AUTH_TOKEN=replace-with-strong-token
+```
+
+Then send one of:
+- `Authorization: Bearer <token>`
+- `x-agentscore-mcp-token: <token>`
+- `x-agentscore-token: <token>`
+
 Optionally protect policy/audit endpoints:
 
 ```bash
@@ -249,6 +261,12 @@ export AGENTSCORE_AUDIT_TOKEN=replace-with-strong-token
 Then call with either:
 - `Authorization: Bearer <token>`
 - `x-agentscore-audit-token: <token>`
+
+If your MCP client does not support direct remote Streamable HTTP servers, use a local bridge:
+
+```bash
+npx -y mcp-remote http://127.0.0.1:8787/mcp
+```
 
 ### Clean Onboarding (Recommended)
 
@@ -543,6 +561,7 @@ flowchart LR
 | Variable | Default | Description |
 |:---|:---:|:---|
 | `AGENTSCORE_ADAPTER` | `demo` | `demo` · `github` · `json` · `moltbook` |
+| `AGENTSCORE_ENABLED_TOOLS` | `agentscore,sweep` | Comma-separated tool allow-list (`agentscore`, `sweep`) |
 | `AGENTSCORE_TRANSPORT` | `stdio` | `stdio` or `http` (Streamable HTTP server mode) |
 | `AGENTSCORE_PUBLIC_MODE` | `false` | If `true`, requires explicit adapter and blocks `demo` |
 | `GITHUB_TOKEN` | — | GitHub PAT (optional, increases rate limit to 5,000/hr) |
@@ -554,6 +573,7 @@ flowchart LR
 | `AGENTSCORE_HTTP_HOST` | `127.0.0.1` | Bind host for HTTP transport |
 | `AGENTSCORE_HTTP_PORT` | `8787` | Bind port for HTTP transport |
 | `AGENTSCORE_HTTP_PATH` | `/mcp` | MCP endpoint path for HTTP transport |
+| `AGENTSCORE_HTTP_AUTH_TOKEN` | — | Optional bearer token required for `/mcp` HTTP endpoint |
 | `AGENTSCORE_AUDIT_TOKEN` | — | Optional bearer token required for policy/audit endpoints |
 | `AGENTSCORE_AUDIT_MAX_ENTRIES` | `500` | In-memory cap for retained policy audit events |
 | `AGENTSCORE_ENFORCE` | `false` | If `true`, policy gate can block risky results |

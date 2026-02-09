@@ -132,6 +132,24 @@ assert(
   "Invalid transport error message is explicit"
 );
 
+const singleToolRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_ENABLED_TOOLS: "agentscore" },
+  encoding: "utf-8",
+});
+
+assert(singleToolRun.status === 0, `Single-tool allow-list loads config: ${singleToolRun.status}`);
+
+const badToolsRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_ENABLED_TOOLS: "agentscore,badtool" },
+  encoding: "utf-8",
+});
+
+assert(badToolsRun.status === 42, `Invalid tool allow-list exits with code 42: ${badToolsRun.status}`);
+assert(
+  (badToolsRun.stderr || "").includes("AGENTSCORE_ENABLED_TOOLS contains invalid tools"),
+  "Invalid tool allow-list error message is explicit"
+);
+
 const publicModeMissingAdapterRun = spawnSync(process.execPath, ["-e", configScript], {
   env: { ...process.env, AGENTSCORE_ADAPTER: "", AGENTSCORE_PUBLIC_MODE: "true" },
   encoding: "utf-8",

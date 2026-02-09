@@ -3,6 +3,7 @@ import path from "node:path";
 export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
   transport: "stdio" | "http";
+  enabledTools: Array<"agentscore" | "sweep">;
   moltbookApiKey: string;
   githubToken: string;
   dataPath: string;
@@ -13,6 +14,7 @@ export interface Config {
   httpHost: string;
   httpPort: number;
   httpPath: string;
+  httpAuthToken: string;
   auditToken: string;
   auditMaxEntries: number;
 }
@@ -20,6 +22,7 @@ export interface Config {
 let _config: Config | null = null;
 const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 const TRANSPORTS: Config["transport"][] = ["stdio", "http"];
+const TOOLS: Config["enabledTools"] = ["agentscore", "sweep"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
@@ -107,10 +110,27 @@ export function loadConfig(): Config {
   const auditMaxEntries = Number.isNaN(parsedAuditMaxEntries)
     ? 500
     : Math.max(10, Math.min(parsedAuditMaxEntries, 10_000));
+  const rawEnabledTools = (process.env.AGENTSCORE_ENABLED_TOOLS || "").trim().toLowerCase();
+  let enabledTools: Config["enabledTools"] = [...TOOLS];
+  if (rawEnabledTools) {
+    const requestedTools = [...new Set(rawEnabledTools.split(",").map((item) => item.trim()).filter(Boolean))];
+    const invalidTools = requestedTools.filter((tool) => !TOOLS.includes(tool as Config["enabledTools"][number]));
+    if (invalidTools.length > 0) {
+      throw new Error(
+        `AGENTSCORE_ENABLED_TOOLS contains invalid tools: ${invalidTools.join(", ")}. ` +
+        `Allowed values: ${TOOLS.join(", ")}.`
+      );
+    }
+    enabledTools = TOOLS.filter((tool) => requestedTools.includes(tool));
+    if (enabledTools.length === 0) {
+      throw new Error(`AGENTSCORE_ENABLED_TOOLS must include at least one tool: ${TOOLS.join(", ")}.`);
+    }
+  }
 
   _config = {
     adapter,
     transport,
+    enabledTools,
     moltbookApiKey: process.env.MOLTBOOK_API_KEY || "",
     githubToken: process.env.GITHUB_TOKEN || "",
     dataPath,
@@ -121,6 +141,7 @@ export function loadConfig(): Config {
     httpHost,
     httpPort,
     httpPath,
+    httpAuthToken: process.env.AGENTSCORE_HTTP_AUTH_TOKEN || "",
     auditToken: process.env.AGENTSCORE_AUDIT_TOKEN || "",
     auditMaxEntries,
   };
