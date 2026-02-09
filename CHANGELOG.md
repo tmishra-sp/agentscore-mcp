@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-02-09
+
 ### Added
 - Optional enforce-mode policy gate (`AGENTSCORE_ENFORCE` / `--enforce`) that can block risky `agentscore` and `sweep` responses.
 - Structured JSON audit events for policy decisions (`[agentscore][audit] ...`) with reasons and effective policy snapshot.
@@ -21,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README and `.env.example` now document policy-gate controls (score thresholds, blocked recommendations/threat levels, trusted adapters, fail-on-errors, audit toggles).
 - Public readiness test suite now includes enforce-mode regression coverage for both tools.
 - Configuration now supports transport/audit endpoint settings and in-memory audit retention limits.
+- Added optional MCP endpoint auth token (`AGENTSCORE_HTTP_AUTH_TOKEN`) and per-tool allow-listing (`AGENTSCORE_ENABLED_TOOLS`) for tighter production control.
+- Added remote bridge setup guidance (`mcp-remote`) for clients that do not yet support direct remote Streamable HTTP MCP.
 
 ## [1.0.4] - 2026-02-09
 
