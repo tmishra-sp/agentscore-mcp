@@ -26,6 +26,22 @@
 
 ---
 
+> [!TIP]
+> **Compatibility:** AgentScore works with any MCP client that supports local `stdio` servers, including Claude Code/Desktop, Cursor, Codex-compatible clients, and other MCP hosts.
+
+## Quick Navigation
+
+| Start Here | Go To |
+|:---|:---|
+| Why + who this is for | [`Why This Exists`](#why-this-exists) · [`Goal, Audience, and Limits`](#goal-audience-and-limits) |
+| Install and first run | [`Install in 10 Seconds`](#install-in-10-seconds) · [`Setup`](#setup) |
+| Validate with real/controlled data | [`Production Proof`](#production-proof-2-minute-sanity-check) |
+| Understand scoring model | [`Scoring System`](#scoring-system) |
+| Adapter capabilities | [`Platform Adapters`](#platform-adapters) |
+| Security and trust posture | [`Trust & Transparency`](#trust--transparency) |
+
+---
+
 ## Why This Exists
 
 You're about to give AI agents access to customer data, source code, and critical workflows.
@@ -49,6 +65,20 @@ Built in public from recurring conversations with AI governance teams asking one
 - AgentScore is a decision-support signal, not a compliance certification or legal determination.
 - Scores depend on available data quality; sparse data lowers certainty even if a score is produced.
 - Use it with human review, policy controls, and least-privilege access.
+
+> [!WARNING]
+> No README or open-source license can guarantee zero legal risk. AgentScore is provided as-is (MIT), without warranty, and is **not legal advice**.
+
+---
+
+## Pick Your Track
+
+| Track | Best For | First Step |
+|:---|:---|:---|
+| `demo` | Fastest product demo with built-in agents | Run the install command and ask for `@NovaMind` |
+| `github` | Live public profile/thread analysis | `export AGENTSCORE_ADAPTER=github` |
+| `json` | Controlled internal evaluations from your own data | `export AGENTSCORE_ADAPTER=json` + set `AGENTSCORE_DATA_PATH` |
+| `moltbook` | Live Moltbook agent analysis | `export AGENTSCORE_ADAPTER=moltbook` + set `MOLTBOOK_API_KEY` |
 
 ---
 
@@ -173,6 +203,14 @@ export AGENTSCORE_ADAPTER=json   # or github / moltbook
 ```
 
 AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch local `stdio` servers can use it (not only Cursor/Claude).
+
+| Client Type | Supported |
+|:---|:---:|
+| Claude Code | Yes |
+| Claude Desktop | Yes |
+| Cursor | Yes |
+| Codex-compatible MCP clients | Yes |
+| Any MCP host with local `stdio` support | Yes |
 
 Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is currently a public trust index/leaderboard experience. MCP `reportUrl` links are handle-based and resolve when that handle exists in the site index.
 
