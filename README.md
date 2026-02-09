@@ -88,6 +88,12 @@ Built in public from recurring conversations with AI governance teams asking one
 claude mcp add agentscore -- npx -y agentscore-mcp
 ```
 
+Optional policy-enforced startup:
+
+```bash
+claude mcp add agentscore -- npx -y agentscore-mcp --enforce
+```
+
 Then ask Claude:
 
 > _"Investigate @NovaMind — can I trust this agent?"_
@@ -293,6 +299,24 @@ Team/project-scoped example: [`examples/mcp.project.json`](examples/mcp.project.
 - If project scope is required, create/update one config file deliberately (do not auto-generate multiple variants).
 - Do not commit `.mcp.json` unless your team explicitly wants repo-scoped MCP defaults.
 
+### Policy Gate Mode (Optional)
+
+Enable hard blocking (instead of advisory-only scoring):
+
+```bash
+export AGENTSCORE_ENFORCE=true
+export AGENTSCORE_POLICY_MIN_SCORE=650
+export AGENTSCORE_POLICY_TRUSTED_ADAPTERS=github,json
+```
+
+Or pass `--enforce` at startup to set `AGENTSCORE_ENFORCE=true`.
+
+When enforced, AgentScore can return blocked responses (`isError: true`) if policy conditions are violated. Every decision emits a structured audit event to stderr:
+
+```text
+[agentscore][audit] {"type":"agentscore_policy_decision",...}
+```
+
 ---
 
 ## Scoring System
@@ -496,6 +520,14 @@ flowchart LR
 | `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
 | `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Base URL for report links in MCP output |
+| `AGENTSCORE_ENFORCE` | `false` | If `true`, policy gate can block risky results |
+| `AGENTSCORE_POLICY_MIN_SCORE` | `550` | Minimum allowed score when policy is enforced |
+| `AGENTSCORE_POLICY_BLOCK_RECOMMENDATIONS` | `AVOID` | Comma-separated blocked recommendations (`TRUST`, `CAUTION`, `AVOID`) |
+| `AGENTSCORE_POLICY_BLOCK_THREAT_LEVELS` | `COMPROMISED` | Comma-separated blocked sweep levels (`SUSPICIOUS`, `COMPROMISED`) |
+| `AGENTSCORE_POLICY_BLOCK_FLAGS` | `prompt injection,manipulation keyword,account not claimed` | Comma-separated flag substrings that trigger blocking |
+| `AGENTSCORE_POLICY_TRUSTED_ADAPTERS` | `github,json,moltbook` *(when enforced)* | Comma-separated adapters allowed in enforced mode |
+| `AGENTSCORE_POLICY_FAIL_ON_ERRORS` | `false` | If `true`, any per-handle scoring errors trigger blocking |
+| `AGENTSCORE_AUDIT_LOG` | `auto` (`true` when enforced) | Set `false` to suppress structured policy audit events |
 
 Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically. `AGENTSCORE_SITE_URL` must be a valid `https://` URL.
 

@@ -6,6 +6,7 @@ import { trigramSimilarity } from "../scoring/utils.js";
 import { ScoreCache } from "../cache/score-cache.js";
 import { RateLimiter } from "../security/rate-limiter.js";
 import { resolveClientKey } from "../security/client-key.js";
+import { emitPolicyAudit, evaluateSweepPolicy, readPolicyConfigFromEnv } from "../security/policy.js";
 
 const inputSchema = {
   threadId: z
@@ -36,6 +37,19 @@ interface SweepOutput {
   patterns: string[];
   notes?: string[];
   briefing: string;
+  policyGate?: {
+    enforced: boolean;
+    blocked: boolean;
+    reasons: string[];
+    policy: {
+      minScore: number;
+      blockedRecommendations: Array<"TRUST" | "CAUTION" | "AVOID">;
+      blockedThreatLevels: Array<"SUSPICIOUS" | "COMPROMISED">;
+      blockedFlagPatterns: string[];
+      trustedAdapters: string[];
+      failOnErrors: boolean;
+    };
+  };
 }
 
 const rateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 10 });
@@ -282,6 +296,33 @@ export function registerSweepTool(
           briefing,
         };
 
+        const policy = readPolicyConfigFromEnv();
+        const gate = evaluateSweepPolicy(
+          {
+            adapter: adapter.name,
+            threatLevel,
+            participants,
+            patterns,
+            notes,
+          },
+          policy
+        );
+        if (policy.enforce) {
+          output.policyGate = gate;
+        }
+        emitPolicyAudit(
+          "sweep",
+          gate,
+          {
+            adapter: adapter.name,
+            threadId,
+            participantCount: participants.length,
+            threatLevel,
+            patternCount: patterns.length,
+          },
+          policy
+        );
+
         const text =
           `## Thread Sweep: ${threadId}\n\n` +
           `**Threat Level:** ${threatLevel}\n` +
@@ -299,6 +340,24 @@ export function registerSweepTool(
                 .map((p) => `- @${p.handle}: ${p.score}/850 (${p.tier}) [${p.role}]`)
                 .join("\n")
             : "- No participant scores available");
+
+        if (gate.blocked) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text:
+                  `Policy gate blocked this thread sweep.\n` +
+                  `Adapter: ${adapter.name}\n` +
+                  `Reasons:\n` +
+                  gate.reasons.map((reason) => `- ${reason}`).join("\n"),
+              },
+              { type: "text" as const, text },
+              { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+            ],
+            isError: true,
+          };
+        }
 
         return {
           content: [
