@@ -57,6 +57,8 @@ const rateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 10 });
 const MAX_ITEMS = 200;
 const MAX_CONTENT_CHARS = 8000;
 const MAX_TOTAL_CHARS = 160_000;
+const INSTANT_WINDOW_MS = 10_000;
+const CLUSTER_WINDOW_MS = 7 * 60_000;
 
 function truncateContent<T extends { content: string }>(items: T[]): T[] {
   let total = 0;
@@ -214,22 +216,32 @@ export function registerSweepTool(
           }
         }
 
-        // b. Timing analysis: responses within 10 seconds
+        // b. Timing analysis
         const timestamps = threadContent
           .map((c) => new Date(c.createdAt).getTime())
           .filter((t) => Number.isFinite(t))
           .sort((a, b) => a - b);
 
         if (timestamps.length >= 2) {
-          let rapidResponses = 0;
+          let instantResponses = 0;
+          let clusteredResponses = 0;
           for (let i = 1; i < timestamps.length; i++) {
-            if (timestamps[i] - timestamps[i - 1] < 10000) {
-              rapidResponses++;
+            const delta = timestamps[i] - timestamps[i - 1];
+            if (delta < INSTANT_WINDOW_MS) {
+              instantResponses++;
+            }
+            if (delta <= CLUSTER_WINDOW_MS) {
+              clusteredResponses++;
             }
           }
-          if (rapidResponses >= 2) {
+          if (instantResponses >= 2) {
             patterns.push(
-              `${rapidResponses} responses within 10 seconds of each other — suspicious timing`
+              `${instantResponses} responses within 10 seconds of each other — suspicious timing`
+            );
+            coordinationSignals++;
+          } else if (clusteredResponses >= 2 && scores.filter((s) => s < 550).length >= 2) {
+            patterns.push(
+              `${clusteredResponses} responses within 7 minutes among low-trust participants — potential coordinated boosting`
             );
             coordinationSignals++;
           }
@@ -240,6 +252,15 @@ export function registerSweepTool(
         if (lowTrustCount >= 3) {
           patterns.push(
             `${lowTrustCount} participants scored below 500 — potential amplification network`
+          );
+          coordinationSignals++;
+        }
+
+        // c2. Elevated-risk cohort: multiple low-trust participants in one thread
+        const elevatedRiskCount = scores.filter((s) => s < 550).length;
+        if (elevatedRiskCount >= 3) {
+          patterns.push(
+            `${elevatedRiskCount} participants scored below 550 — elevated coordinated-risk cohort`
           );
           coordinationSignals++;
         }

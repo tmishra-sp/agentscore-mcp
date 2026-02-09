@@ -3,7 +3,7 @@
  *
  * Covers:
  * - README install/npm links align with package name
- * - reportUrl format matches live public site route shape
+ * - score output excludes public dashboard links
  *
  * Run: node test/public-contract.test.mjs
  */
@@ -11,7 +11,6 @@
 import { readFile } from "node:fs/promises";
 import { DemoAdapter } from "../dist/adapters/demo/adapter.js";
 import { scoreAgent } from "../dist/scoring/engine.js";
-import { loadConfig } from "../dist/config.js";
 
 let passed = 0;
 let failed = 0;
@@ -57,20 +56,15 @@ assert(
   "README npm badge URL matches package name"
 );
 
-section("2. reportUrl Route Contract");
+section("2. Output Contract (No Public Dashboard Links)");
 
 const envBackup = {
   AGENTSCORE_ADAPTER: process.env.AGENTSCORE_ADAPTER,
   AGENTSCORE_PUBLIC_MODE: process.env.AGENTSCORE_PUBLIC_MODE,
-  AGENTSCORE_SITE_URL: process.env.AGENTSCORE_SITE_URL,
-  AGENTSCORE_REPORT_URL_MODE: process.env.AGENTSCORE_REPORT_URL_MODE,
 };
 
 process.env.AGENTSCORE_ADAPTER = "demo";
 process.env.AGENTSCORE_PUBLIC_MODE = "false";
-process.env.AGENTSCORE_SITE_URL = "https://ai-agent-score.vercel.app/";
-process.env.AGENTSCORE_REPORT_URL_MODE = "demo-only";
-loadConfig();
 
 const adapter = new DemoAdapter();
 const profile = await adapter.fetchProfile("NovaMind");
@@ -84,65 +78,33 @@ if (!profile) {
   const result = scoreAgent(profile, content, interactions);
 
   assert(
-    result.reportUrl === "https://ai-agent-score.vercel.app/agent/NovaMind",
-    `reportUrl uses handle route: ${result.reportUrl}`
+    !Object.prototype.hasOwnProperty.call(result, "reportUrl"),
+    "score output omits reportUrl field"
   );
-  assert(!result.reportUrl.includes("/demo/"), "reportUrl no longer includes platform segment");
+  assert(
+    result.badge.url.startsWith("https://img.shields.io/badge/"),
+    "badge.url is plain URL"
+  );
+  assert(
+    result.badge.markdown === `![AgentScore](${result.badge.url})`,
+    "badge.markdown wraps badge.url"
+  );
+  assert(
+    typeof result.artifacts.governanceCardHtml === "string" &&
+      result.artifacts.governanceCardHtml.includes("<section"),
+    "governanceCardHtml is generated"
+  );
+  const serialized = JSON.stringify(result);
+  assert(
+    !serialized.includes("ai-agent-score.vercel.app"),
+    "score payload contains no public dashboard domain"
+  );
 }
-
-section("3. reportUrl Availability Policy Contract");
-
-const enterpriseProfile = {
-  handle: "claims-assist-v3",
-  displayName: "ClaimsAssist v3",
-  description: "Enterprise claims assistant",
-  platform: "enterprise-internal",
-  karma: 120,
-  followers: 25,
-  following: 10,
-  createdAt: "2025-01-15T00:00:00Z",
-  claimed: true,
-};
-
-process.env.AGENTSCORE_REPORT_URL_MODE = "demo-only";
-loadConfig();
-const nonDemoResult = scoreAgent(enterpriseProfile, [], []);
-assert(nonDemoResult.reportUrl === undefined, "reportUrl suppressed for non-demo by default");
-assert(
-  nonDemoResult.badge.url.startsWith("https://img.shields.io/badge/"),
-  "badge.url is plain URL"
-);
-assert(
-  nonDemoResult.badge.markdown === `![AgentScore](${nonDemoResult.badge.url})`,
-  "badge.markdown wraps badge.url"
-);
-assert(
-  typeof nonDemoResult.artifacts.governanceCardHtml === "string" &&
-    nonDemoResult.artifacts.governanceCardHtml.includes("<section"),
-  "governanceCardHtml is generated"
-);
-
-delete process.env.AGENTSCORE_REPORT_URL_MODE;
-loadConfig();
-const defaultModeResult = scoreAgent(enterpriseProfile, [], []);
-assert(defaultModeResult.reportUrl === undefined, "reportUrl default mode is none");
-
-process.env.AGENTSCORE_REPORT_URL_MODE = "always";
-loadConfig();
-const forcedReportResult = scoreAgent(enterpriseProfile, [], []);
-assert(
-  forcedReportResult.reportUrl === "https://ai-agent-score.vercel.app/agent/claims-assist-v3",
-  "reportUrl can be forced for non-demo with AGENTSCORE_REPORT_URL_MODE=always"
-);
 
 if (envBackup.AGENTSCORE_ADAPTER === undefined) delete process.env.AGENTSCORE_ADAPTER;
 else process.env.AGENTSCORE_ADAPTER = envBackup.AGENTSCORE_ADAPTER;
 if (envBackup.AGENTSCORE_PUBLIC_MODE === undefined) delete process.env.AGENTSCORE_PUBLIC_MODE;
 else process.env.AGENTSCORE_PUBLIC_MODE = envBackup.AGENTSCORE_PUBLIC_MODE;
-if (envBackup.AGENTSCORE_SITE_URL === undefined) delete process.env.AGENTSCORE_SITE_URL;
-else process.env.AGENTSCORE_SITE_URL = envBackup.AGENTSCORE_SITE_URL;
-if (envBackup.AGENTSCORE_REPORT_URL_MODE === undefined) delete process.env.AGENTSCORE_REPORT_URL_MODE;
-else process.env.AGENTSCORE_REPORT_URL_MODE = envBackup.AGENTSCORE_REPORT_URL_MODE;
 
 section("Results");
 console.log(`\n  ${passed} passed, ${failed} failed, ${passed + failed} total\n`);

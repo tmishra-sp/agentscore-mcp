@@ -4,13 +4,11 @@ export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
   transport: "stdio" | "http";
   enabledTools: Array<"agentscore" | "sweep">;
-  reportUrlMode: "none" | "always" | "demo-only";
   moltbookApiKey: string;
   githubToken: string;
   dataPath: string;
   cacheTtl: number;
   rateLimitMs: number;
-  siteUrl: string;
   publicMode: boolean;
   httpHost: string;
   httpPort: number;
@@ -24,7 +22,6 @@ let _config: Config | null = null;
 const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 const TRANSPORTS: Config["transport"][] = ["stdio", "http"];
 const TOOLS: Config["enabledTools"] = ["agentscore", "sweep"];
-const REPORT_URL_MODES: Config["reportUrlMode"][] = ["none", "always", "demo-only"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
@@ -39,8 +36,6 @@ export function loadConfig(): Config {
   const transport = resolvedTransport as Config["transport"];
   const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "").trim();
   const resolvedAdapter = rawAdapter || "demo";
-  const rawReportUrlMode = (process.env.AGENTSCORE_REPORT_URL_MODE || "").trim().toLowerCase();
-  const resolvedReportUrlMode = rawReportUrlMode || "none";
 
   if (publicMode && !rawAdapter) {
     throw new Error(
@@ -55,21 +50,12 @@ export function loadConfig(): Config {
   }
   const adapter = resolvedAdapter as Config["adapter"];
 
-  if (!REPORT_URL_MODES.includes(resolvedReportUrlMode as Config["reportUrlMode"])) {
-    throw new Error(
-      `AGENTSCORE_REPORT_URL_MODE must be one of: ${REPORT_URL_MODES.join(", ")}. ` +
-      `Received: "${resolvedReportUrlMode || "<empty>"}".`
-    );
-  }
-  const reportUrlMode = resolvedReportUrlMode as Config["reportUrlMode"];
-
   if (publicMode && adapter === "demo") {
     throw new Error(
       "AGENTSCORE_PUBLIC_MODE=true does not allow AGENTSCORE_ADAPTER=demo. Use json, github, or moltbook."
     );
   }
   const dataPath = process.env.AGENTSCORE_DATA_PATH || "";
-  const rawSiteUrl = process.env.AGENTSCORE_SITE_URL || "https://ai-agent-score.vercel.app";
 
   if (dataPath) {
     // Normalize and check for '..' segments to prevent path traversal.
@@ -79,16 +65,6 @@ export function loadConfig(): Config {
     if (normalized.split(path.sep).includes("..")) {
       throw new Error("AGENTSCORE_DATA_PATH must not contain '..' segments.");
     }
-  }
-
-  let siteUrl = rawSiteUrl.replace(/\/$/, "");
-  try {
-    const parsed = new URL(siteUrl);
-    if (parsed.protocol !== "https:") {
-      throw new Error("AGENTSCORE_SITE_URL must use https://");
-    }
-  } catch (error) {
-    throw new Error("AGENTSCORE_SITE_URL must be a valid https:// URL.");
   }
 
   if (adapter === "moltbook" && !process.env.MOLTBOOK_API_KEY) {
@@ -143,13 +119,11 @@ export function loadConfig(): Config {
     adapter,
     transport,
     enabledTools,
-    reportUrlMode,
     moltbookApiKey: process.env.MOLTBOOK_API_KEY || "",
     githubToken: process.env.GITHUB_TOKEN || "",
     dataPath,
     cacheTtl: Number.isNaN(cacheTtl) ? 86400 : cacheTtl,
     rateLimitMs: Number.isNaN(rateLimitMs) ? 200 : rateLimitMs,
-    siteUrl,
     publicMode,
     httpHost,
     httpPort,

@@ -44,7 +44,7 @@ Use this as-is or adapt:
 4. Coordination sweep:
    - "Sweep demo-thread-001 for sock puppets"
 5. Close:
-   - show category breakdown + recommendation + badge/report URL.
+   - show category breakdown + recommendation + badge + governance card HTML.
 
 ## 4) Benchmark Snippet
 

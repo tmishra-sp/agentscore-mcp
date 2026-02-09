@@ -218,8 +218,6 @@ AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch
 | Codex-compatible MCP clients | Yes |
 | Any MCP host with local `stdio` support | Yes |
 
-Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is a separate public trust index/leaderboard experience. MCP output suppresses public report links by default to avoid dead links for private or custom handles.
-
 ### Centralized Service Mode (Streamable HTTP)
 
 Run one shared governance endpoint for multiple clients:
@@ -532,7 +530,7 @@ flowchart LR
     B["Tool Router<br/>agentscore + sweep"]
     C["Adapter Router<br/>demo | github | json | moltbook"]
     D["Trust Scoring Engine<br/>6 weighted dimensions"]
-    E["Response Builder<br/>briefing + JSON + badge + report URL"]
+    E["Response Builder<br/>briefing + JSON + badge + governance card HTML"]
   end
 
   subgraph DATA["Data Sources"]
@@ -569,8 +567,6 @@ flowchart LR
 | `AGENTSCORE_DATA_PATH` | — | Required for JSON adapter |
 | `AGENTSCORE_CACHE_TTL` | `86400` | Score cache TTL in seconds |
 | `AGENTSCORE_RATE_LIMIT_MS` | `200` | Moltbook adapter request delay (ms) |
-| `AGENTSCORE_SITE_URL` | `https://ai-agent-score.vercel.app` | Base URL for report links in MCP output |
-| `AGENTSCORE_REPORT_URL_MODE` | `none` | Report link policy: `none` (default), `demo-only`, or `always` |
 | `AGENTSCORE_HTTP_HOST` | `127.0.0.1` | Bind host for HTTP transport |
 | `AGENTSCORE_HTTP_PORT` | `8787` | Bind port for HTTP transport |
 | `AGENTSCORE_HTTP_PATH` | `/mcp` | MCP endpoint path for HTTP transport |
@@ -586,7 +582,7 @@ flowchart LR
 | `AGENTSCORE_POLICY_FAIL_ON_ERRORS` | `false` | If `true`, any per-handle scoring errors trigger blocking |
 | `AGENTSCORE_AUDIT_LOG` | `auto` (`true` when enforced) | Set `false` to suppress structured policy audit events |
 
-Invalid numeric values fall back to defaults. Trailing slashes on URLs are trimmed automatically. `AGENTSCORE_SITE_URL` must be a valid `https://` URL.
+Invalid numeric values fall back to defaults.
 
 ---
 

@@ -8,7 +8,6 @@ import { scoreRiskSignals } from "./categories/risk-signals.js";
 import { scoreAccountHealth } from "./categories/account-health.js";
 import { scoreCommunityStanding } from "./categories/community-standing.js";
 import { generateBriefing } from "./briefing.js";
-import { getConfig } from "../config.js";
 
 type CategoryScorer = (ctx: ScoringContext) => CategoryScore;
 
@@ -51,18 +50,11 @@ export function scoreAgent(
   const flags = collectFlags(categories, ctx);
   const briefing = generateBriefing(profile, score, tier.name, categories, flags, ctx);
 
-  const config = getConfig();
   const badgeColor = tier.color.replace("#", "");
   const badgeLabel = `AgentScore-${score}%2F850-${badgeColor}`;
   const badgeUrl = `https://img.shields.io/badge/${badgeLabel}`;
   const badgeMarkdown = `![AgentScore](${badgeUrl})`;
-  const encodedHandle = encodeURIComponent(profile.handle);
   const scoredAt = new Date().toISOString();
-  const reportUrl =
-    config.reportUrlMode === "always" ||
-    (config.reportUrlMode === "demo-only" && profile.platform === "demo")
-      ? `${config.siteUrl}/agent/${encodedHandle}`
-      : undefined;
   const governanceCardHtml = buildGovernanceCardHtml({
     profile,
     score,
@@ -96,7 +88,6 @@ export function scoreAgent(
       governanceCardHtml,
     },
     scoredAt,
-    reportUrl,
   };
 }
 
