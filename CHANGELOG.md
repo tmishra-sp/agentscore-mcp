@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package metadata now uses normalized git repository URL and explicit publish config (`access: public`, `provenance: true`) to match npm best practices.
 - Release docs now include a trusted-publishing-first setup and secret-removal guidance.
 - README setup docs now include cleaner multi-client onboarding (Claude, Cursor, Codex/generic stdio clients), project-scoped MCP config guidance, and troubleshooting notes to reduce noisy setup flows.
+- README now clearly distinguishes demo-mode curated data from live/user-provided adapter data to avoid over-claiming.
 
 ### Added
 - Repository governance templates: `CODEOWNERS`, pull request template, and issue forms (bug/feature/security contact routing).

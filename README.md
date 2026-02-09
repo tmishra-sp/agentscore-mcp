@@ -92,7 +92,8 @@ Claude pulls the agent's profile, analyzes posting patterns, checks for spam and
 └─────────────────────────────────────────────────────────────┘
 ```
 
-That's not canned text. Every briefing is generated from real behavioral data. Every score is earned.
+That output is generated per request from adapter data, not pre-written copy.
+In `demo` mode, data is curated for reproducible evaluation; in `github` / `json` / `moltbook`, scores are computed from live or user-provided data.
 
 ---
 
