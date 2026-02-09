@@ -2,6 +2,7 @@ import path from "node:path";
 
 export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
+  transport: "stdio" | "http";
   moltbookApiKey: string;
   githubToken: string;
   dataPath: string;
@@ -9,14 +10,28 @@ export interface Config {
   rateLimitMs: number;
   siteUrl: string;
   publicMode: boolean;
+  httpHost: string;
+  httpPort: number;
+  httpPath: string;
+  auditToken: string;
+  auditMaxEntries: number;
 }
 
 let _config: Config | null = null;
 const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
+const TRANSPORTS: Config["transport"][] = ["stdio", "http"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
   const publicMode = (process.env.AGENTSCORE_PUBLIC_MODE || "").trim().toLowerCase() === "true";
+  const rawTransport = (process.env.AGENTSCORE_TRANSPORT || "").trim();
+  const resolvedTransport = rawTransport || "stdio";
+  if (!TRANSPORTS.includes(resolvedTransport as Config["transport"])) {
+    throw new Error(
+      `AGENTSCORE_TRANSPORT must be one of: ${TRANSPORTS.join(", ")}. Received: "${resolvedTransport || "<empty>"}".`
+    );
+  }
+  const transport = resolvedTransport as Config["transport"];
   const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "").trim();
   const resolvedAdapter = rawAdapter || "demo";
 
@@ -83,9 +98,19 @@ export function loadConfig(): Config {
 
   const cacheTtl = parseInt(process.env.AGENTSCORE_CACHE_TTL || "86400", 10);
   const rateLimitMs = parseInt(process.env.AGENTSCORE_RATE_LIMIT_MS || "200", 10);
+  const httpHost = (process.env.AGENTSCORE_HTTP_HOST || "127.0.0.1").trim() || "127.0.0.1";
+  const parsedHttpPort = parseInt(process.env.AGENTSCORE_HTTP_PORT || "8787", 10);
+  const httpPort = Number.isNaN(parsedHttpPort) ? 8787 : Math.max(1, Math.min(parsedHttpPort, 65535));
+  const rawHttpPath = (process.env.AGENTSCORE_HTTP_PATH || "/mcp").trim() || "/mcp";
+  const httpPath = rawHttpPath.startsWith("/") ? rawHttpPath : `/${rawHttpPath}`;
+  const parsedAuditMaxEntries = parseInt(process.env.AGENTSCORE_AUDIT_MAX_ENTRIES || "500", 10);
+  const auditMaxEntries = Number.isNaN(parsedAuditMaxEntries)
+    ? 500
+    : Math.max(10, Math.min(parsedAuditMaxEntries, 10_000));
 
   _config = {
     adapter,
+    transport,
     moltbookApiKey: process.env.MOLTBOOK_API_KEY || "",
     githubToken: process.env.GITHUB_TOKEN || "",
     dataPath,
@@ -93,6 +118,11 @@ export function loadConfig(): Config {
     rateLimitMs: Number.isNaN(rateLimitMs) ? 200 : rateLimitMs,
     siteUrl,
     publicMode,
+    httpHost,
+    httpPort,
+    httpPath,
+    auditToken: process.env.AGENTSCORE_AUDIT_TOKEN || "",
+    auditMaxEntries,
   };
 
   return _config;

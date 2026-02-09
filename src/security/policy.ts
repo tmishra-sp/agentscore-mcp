@@ -1,4 +1,6 @@
 import type { AgentScoreResult, Recommendation } from "../scoring/types.js";
+import { appendPolicyAuditEvent } from "./audit-store.js";
+import type { PolicyAuditEvent } from "./audit-store.js";
 
 export interface PolicyConfig {
   enforce: boolean;
@@ -195,7 +197,7 @@ export function evaluateSweepPolicy(input: SweepPolicyInput, config: PolicyConfi
 
 export function emitPolicyAudit(tool: "agentscore" | "sweep", gate: PolicyGateResult, metadata: Record<string, unknown>, config: PolicyConfig): void {
   if (!config.auditLog) return;
-  const event = {
+  const event: PolicyAuditEvent = {
     ts: new Date().toISOString(),
     type: "agentscore_policy_decision",
     tool,
@@ -205,5 +207,6 @@ export function emitPolicyAudit(tool: "agentscore" | "sweep", gate: PolicyGateRe
     policy: gate.policy,
     metadata,
   };
+  appendPolicyAuditEvent(event);
   console.error(`[agentscore][audit] ${JSON.stringify(event)}`);
 }
