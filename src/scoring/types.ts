@@ -12,6 +12,7 @@ export interface AgentScoreResult {
   score: number;
   tier: Tier;
   recommendation: Recommendation;
+  accessDecision: AccessDecision;
   confidence: Confidence;
   categories: CategoryScore[];
   briefing: string;
@@ -37,6 +38,11 @@ export interface ComparisonResult {
 export type Tier = "Excellent" | "Good" | "Fair" | "Poor" | "Critical";
 export type Recommendation = "TRUST" | "CAUTION" | "AVOID";
 export type Confidence = "high" | "medium" | "low";
+export type AccessDecision = {
+  verdict: "ALLOW" | "CONDITIONAL" | "REJECT";
+  label: string;
+  rationale: string[];
+};
 
 export interface ScoringContext {
   handle: string;

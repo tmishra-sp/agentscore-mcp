@@ -72,6 +72,13 @@ function sanitizeOutputText(text: string): string {
   return text.replace(/https?:\/\/ai-agent-score\.vercel\.app[^\s)"]*/gi, "<redacted-url>");
 }
 
+function formatAccessDecision(decision: AgentScoreResult["accessDecision"]): string {
+  const leadReason = decision.rationale[0] || "No additional rationale.";
+  const extraCount = Math.max(0, decision.rationale.length - 1);
+  const suffix = extraCount > 0 ? ` (+${extraCount} more checks)` : "";
+  return `**Access Decision:** ${decision.label} — ${leadReason}${suffix}`;
+}
+
 export function registerAgentScoreTool(
   server: McpServer,
   getAdapter: (platform?: string) => AgentPlatformAdapter,
@@ -187,6 +194,7 @@ export function registerAgentScoreTool(
         textParts.push(
           `## @${r.handle} — ${r.score}/850 (${r.tier})\n` +
             `**Recommendation:** ${r.recommendation} | **Confidence:** ${r.confidence}\n\n` +
+            `${formatAccessDecision(r.accessDecision)}\n\n` +
             `${r.briefing}\n\n` +
             `**Categories:**\n` +
             r.categories
