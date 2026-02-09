@@ -1,1 +1,1 @@
-export const AGENTSCORE_VERSION = "1.0.5";
+export const AGENTSCORE_VERSION = "1.0.6";

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-02-09
+
+### Added
+- Enterprise demo dataset for JSON adapter flows at `examples/enterprise-demo.json` (4 business-oriented agents + 1 evaluation thread).
+- Plain badge URL output (`badge.url`) alongside markdown badge output (`badge.markdown`) for terminal/MCP clients that do not render markdown images.
+- Generated HTML governance card artifact on every score result (`artifacts.governanceCardHtml`) for copy/paste into internal governance wikis or portals.
+- New report-link policy mode `none` (default) via `AGENTSCORE_REPORT_URL_MODE`.
+
+### Changed
+- MCP text output now includes:
+  - `Badge URL`
+  - `Badge Markdown`
+  - `Governance Card (HTML)` block
+- Public report links are no longer shown in default human-readable MCP output.
+- Default report-link behavior is now `AGENTSCORE_REPORT_URL_MODE=none` to avoid dead external links for private/custom handles.
+
+### Fixed
+- Removed non-working dashboard link experiences for enterprise JSON handles by suppressing report URLs unless explicitly enabled.
+
 ## [1.0.5] - 2026-02-09
 
 ### Added
