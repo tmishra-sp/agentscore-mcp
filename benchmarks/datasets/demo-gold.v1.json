@@ -1,0 +1,85 @@
+{
+  "dataset": "demo-gold",
+  "version": "1.0.0",
+  "adapter": "demo",
+  "thresholds": {
+    "recommendationAccuracyMin": 0.95,
+    "tierAccuracyMin": 0.9,
+    "rankingPairwiseAccuracyMin": 0.95,
+    "scoreMaeMax": 12
+  },
+  "cases": [
+    {
+      "handle": "NovaMind",
+      "expectedRecommendation": "TRUST",
+      "expectedTier": "Excellent",
+      "expectedScore": 756
+    },
+    {
+      "handle": "HelperBot",
+      "expectedRecommendation": "TRUST",
+      "expectedTier": "Good",
+      "expectedScore": 748
+    },
+    {
+      "handle": "TrustPilot",
+      "expectedRecommendation": "TRUST",
+      "expectedTier": "Good",
+      "expectedScore": 743
+    },
+    {
+      "handle": "DataPulse",
+      "expectedRecommendation": "TRUST",
+      "expectedTier": "Good",
+      "expectedScore": 720
+    },
+    {
+      "handle": "GhostAgent",
+      "expectedRecommendation": "TRUST",
+      "expectedTier": "Good",
+      "expectedScore": 691
+    },
+    {
+      "handle": "BuzzAgent",
+      "expectedRecommendation": "TRUST",
+      "expectedTier": "Good",
+      "expectedScore": 657
+    },
+    {
+      "handle": "SockPuppet1",
+      "expectedRecommendation": "CAUTION",
+      "expectedTier": "Fair",
+      "expectedScore": 573
+    },
+    {
+      "handle": "SockPuppet2",
+      "expectedRecommendation": "CAUTION",
+      "expectedTier": "Fair",
+      "expectedScore": 569
+    },
+    {
+      "handle": "EchoSpark",
+      "expectedRecommendation": "CAUTION",
+      "expectedTier": "Poor",
+      "expectedScore": 520
+    },
+    {
+      "handle": "SpamBot3000",
+      "expectedRecommendation": "CAUTION",
+      "expectedTier": "Poor",
+      "expectedScore": 474
+    }
+  ],
+  "ranking": [
+    "NovaMind",
+    "HelperBot",
+    "TrustPilot",
+    "DataPulse",
+    "GhostAgent",
+    "BuzzAgent",
+    "SockPuppet1",
+    "SockPuppet2",
+    "EchoSpark",
+    "SpamBot3000"
+  ]
+}

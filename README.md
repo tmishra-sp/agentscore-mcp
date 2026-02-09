@@ -399,10 +399,14 @@ npm run dev          # Start with tsx (hot reload)
 npm run build        # Compile TypeScript
 npm run typecheck    # Strict mode, zero errors
 npm run test         # Run all test suites
+npm run benchmark    # Reproducible benchmark report (benchmarks/results/latest.json)
+npm run benchmark:strict  # Fail if benchmark thresholds regress
 npm run inspect      # Interactive testing with MCP Inspector
 ```
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for PR guidelines and adapter development.
+
+Benchmark details and dataset format: [`benchmarks/README.md`](benchmarks/README.md)
 
 ---
 

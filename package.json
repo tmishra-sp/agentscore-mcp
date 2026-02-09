@@ -34,6 +34,8 @@
     "test:suite": "node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs && node test/adapter-contract.test.mjs",
     "test": "npm run build && npm run test:suite",
     "coverage": "npm run build && c8 --all --exclude='examples/**' --exclude='dist/server.js' --exclude='dist/adapters/demo/agents.js' --exclude='dist/**/*.d.ts' --exclude='dist/**/*.map' --check-coverage --lines 60 --functions 65 --branches 60 --statements 60 npm run test:suite",
+    "benchmark": "npm run build && node benchmarks/run.mjs --dataset benchmarks/datasets/demo-gold.v1.json --out benchmarks/results/latest.json",
+    "benchmark:strict": "npm run benchmark -- --strict",
     "typecheck": "tsc --noEmit",
     "package:check": "npm pack --dry-run --cache .npm-cache",
     "verify": "npm run coverage && npm run package:check",
