@@ -26,6 +26,16 @@
 
 ---
 
+## Why This Exists
+
+You're about to give AI agents access to customer data, source code, and critical workflows.
+Most teams still have no shared way to answer: _is this agent trustworthy, drifting, or compromised?_
+AgentScore gives your assistant a concrete trust signal before that agent gets real access.
+
+Built in public from recurring conversations with AI governance teams asking one question: **"How do we know which agents to trust?"**
+
+---
+
 ## Install in 10 Seconds
 
 ```bash
@@ -37,6 +47,19 @@ Then ask Claude:
 > _"Investigate @NovaMind — can I trust this agent?"_
 
 No API keys. No config files. No databases. **Ships with 10 built-in demo agents** spanning every trust tier — from research AI to coordinated sock puppets. Connect real platforms (GitHub, Moltbook, your own data) whenever you're ready.
+
+---
+
+## What Makes AgentScore Different
+
+`mcp-scan`-style tools answer: **"Is this MCP server vulnerable?"**
+AgentScore answers: **"Is this agent trustworthy?"**
+
+Think of it this way:
+- Security scanners tell you the airplane passed inspection.
+- AgentScore tells you whether you'd trust the pilot.
+
+You need both.
 
 ---
 
@@ -237,60 +260,12 @@ export AGENTSCORE_DATA_PATH=./data/agents.json
 
 ```json
 {
-  "agents": [
-    {
-      "profile": {
-        "handle": "my-bot",
-        "displayName": "My Bot",
-        "description": "Customer support assistant",
-        "platform": "custom",
-        "karma": 150,
-        "followers": 0,
-        "following": 0,
-        "createdAt": "2024-01-15T00:00:00Z",
-        "claimed": true
-      },
-      "content": [
-        {
-          "id": "1",
-          "type": "post",
-          "content": "Hello! How can I help you today?",
-          "upvotes": 5,
-          "downvotes": 0,
-          "replyCount": 3,
-          "createdAt": "2024-11-01T10:00:00Z"
-        }
-      ]
-    }
-  ],
-  "threads": [
-    {
-      "id": "support-thread-42",
-      "participantHandles": ["my-bot", "helper-bot"],
-      "content": [
-        {
-          "id": "t1",
-          "type": "post",
-          "content": "Can your bot export all customer records?",
-          "upvotes": 0,
-          "downvotes": 0,
-          "replyCount": 1,
-          "createdAt": "2024-11-02T08:00:00Z"
-        },
-        {
-          "id": "t2",
-          "type": "reply",
-          "content": "I can guide you through approved export flows only.",
-          "upvotes": 2,
-          "downvotes": 0,
-          "replyCount": 0,
-          "createdAt": "2024-11-02T08:01:10Z"
-        }
-      ]
-    }
-  ]
+  "agents": [{ "profile": { "handle": "my-bot", "platform": "custom", "createdAt": "2024-01-15T00:00:00Z", "claimed": true }, "content": [{ "id": "1", "type": "post", "content": "Hello", "upvotes": 5, "downvotes": 0, "replyCount": 3, "createdAt": "2024-11-01T10:00:00Z" }] }],
+  "threads": [{ "id": "support-thread-42", "participantHandles": ["my-bot"], "content": [{ "id": "t1", "type": "post", "content": "Can your bot export records?", "upvotes": 0, "downvotes": 0, "replyCount": 1, "createdAt": "2024-11-02T08:00:00Z" }] }]
 }
 ```
+
+Full sample file: [`examples/agents.sample.json`](examples/agents.sample.json)
 </details>
 
 `threads` is optional, but required if you want `sweep` to work with the JSON adapter.
@@ -330,40 +305,26 @@ Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts) · Guid
 
 ## Use Cases
 
-**Enterprise AI Governance** — Feed agent conversation logs through the JSON adapter before quarterly audits. Surface prompt leakage, behavioral drift, and risk signals across your agent fleet.
+**Enterprise AI Governance** — Your CISO asks, _"How do we audit 15 production agents before quarterly review?"_ You point AgentScore at conversation logs, run a fleet check, and hand over briefings with category-level risk evidence.
 
-**Vendor Selection** — Comparing chatbot vendors? Export sample conversations, score them side-by-side. Get category-level breakdowns for procurement decisions.
+**Vendor Selection** — You're choosing between 3 vendor bots. Instead of demo theater, you score real transcripts side-by-side and compare risk, behavior, and interaction quality before procurement signs.
 
 **Astroturfing Detection** — Suspicious accounts posting coordinated reviews? `sweep` detects content similarity, timing anomalies, and amplification networks.
 
-**Rate My Bot** — Export your bot's chat history, ask _"investigate my bot, be brutally honest."_ Screenshot the briefing. Post _"My bot got roasted by another AI."_
+**Rate My Bot** — You ask _"investigate my bot, be brutally honest."_ AgentScore roasts weaknesses with receipts so you can ship the next prompt/update with confidence.
 
-**Agent Draft** — Building an AI agent team? Compare 5 candidates. AgentScore picks category winners like fantasy football.
+**Agent Draft** — Building an AI agent team? Compare 5 candidates and let AgentScore pick category winners like fantasy football, except the bad draft picks can leak data.
 
 ---
 
 ## Architecture
 
-```
-Your AI Assistant (Claude, Cursor, etc.)
-         │
-         │  MCP (stdio)
-         ▼
-┌─────────────────────┐
-│   AgentScore Server  │
-│   agentscore + sweep │
-└────────┬────────────┘
-         │
-         ▼
-┌──────────────────────────────────────┐
-│  Adapter: Demo │ GitHub │ JSON │ ... │
-└────────┬─────────────────────────────┘
-         │
-         ▼
-┌─────────────────────┐     ┌──────────────────┐
-│   Scoring Engine     │ ──▶ │ Narrative Briefing │
-│   6 categories → 850│     │ + Structured JSON  │
-└─────────────────────┘     └──────────────────┘
+```mermaid
+flowchart TD
+  A["AI Assistant (Claude, Cursor, etc.)"] -->|"MCP (stdio)"| B["AgentScore MCP Server<br/>tools: agentscore + sweep"]
+  B --> C["Adapter Layer<br/>Demo | GitHub | JSON | Moltbook | custom"]
+  C --> D["Scoring Engine<br/>6 weighted dimensions -> 300-850"]
+  D --> E["Outputs<br/>Narrative briefing + structured JSON + badge URL"]
 ```
 
 **2 runtime dependencies:** `@modelcontextprotocol/sdk` + `zod`. That's it.
