@@ -192,8 +192,9 @@ export function registerAgentScoreTool(
             (r.flags.length > 0
               ? `**Flags:** ${r.flags.join("; ")}\n\n`
               : "") +
-            `**Badge:** ${r.badge.shields}\n` +
-            `**Report:** ${r.reportUrl}`
+            `**Badge URL:** ${r.badge.url}\n` +
+            `**Badge Markdown:** ${r.badge.markdown}\n` +
+            `**Report:** ${r.reportUrl ?? "Not available for this handle on the public site index."}`
         );
       }
 

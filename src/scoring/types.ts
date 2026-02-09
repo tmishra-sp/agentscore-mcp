@@ -17,11 +17,14 @@ export interface AgentScoreResult {
   briefing: string;
   flags: string[];
   badge: {
+    url: string;
+    markdown: string;
+    /** @deprecated Use badge.markdown. Kept for backwards compatibility. */
     shields: string;
     text: string;
   };
   scoredAt: string;
-  reportUrl: string;
+  reportUrl?: string;
 }
 
 export interface ComparisonResult {
