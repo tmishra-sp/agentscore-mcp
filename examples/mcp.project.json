@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agentscore": {
+      "command": "npx",
+      "args": ["-y", "agentscore-mcp"]
+    }
+  }
+}

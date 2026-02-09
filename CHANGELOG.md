@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release workflow now prioritizes npm trusted publishing (OIDC) with provenance, and supports a temporary `NPM_TOKEN` fallback during migration.
 - Package metadata now uses normalized git repository URL and explicit publish config (`access: public`, `provenance: true`) to match npm best practices.
 - Release docs now include a trusted-publishing-first setup and secret-removal guidance.
+- README setup docs now include cleaner multi-client onboarding (Claude, Cursor, Codex/generic stdio clients), project-scoped MCP config guidance, and troubleshooting notes to reduce noisy setup flows.
+
+### Added
+- Repository governance templates: `CODEOWNERS`, pull request template, and issue forms (bug/feature/security contact routing).
+- Project-scoped MCP config example at `examples/mcp.project.json`.
 
 ## [1.0.3] - 2026-02-09
 

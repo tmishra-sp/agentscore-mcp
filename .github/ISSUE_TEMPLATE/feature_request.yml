@@ -1,0 +1,48 @@
+name: Feature request
+description: Propose a new capability or improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the problem first, then the proposed solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user/problem are we solving?
+      placeholder: "As a ..., I need ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should be built?
+      placeholder: Clear implementation-oriented proposal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternatives or tradeoffs?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - scoring
+        - sweep
+        - adapters
+        - security
+        - developer-experience
+        - docs
+        - release/ci
+    validations:
+      required: true

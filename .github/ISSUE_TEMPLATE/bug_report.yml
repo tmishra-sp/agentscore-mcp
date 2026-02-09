@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a defect or regression in AgentScore MCP.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please provide reproducible details.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the bug and expected behavior.
+      placeholder: A clear and concise description.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: Include exact commands/prompts and env vars used.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / output
+      description: Paste relevant output, stack traces, or screenshots.
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: AgentScore MCP version
+      placeholder: e.g. 1.0.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Adapter
+      options:
+        - demo
+        - github
+        - json
+        - moltbook
+        - custom
+    validations:
+      required: true

@@ -124,6 +124,20 @@ AgentScore is a standard MCP server over `stdio`. Any MCP client that can launch
 
 Public site note: [`ai-agent-score.vercel.app`](https://ai-agent-score.vercel.app) is currently a public trust index/leaderboard experience. MCP `reportUrl` links are handle-based and resolve when that handle exists in the site index.
 
+### Clean Onboarding (Recommended)
+
+Use a single setup command and verify once:
+
+```bash
+claude mcp add agentscore -- npx -y agentscore-mcp
+```
+
+Then confirm the server is registered in your MCP client and run a single prompt:
+
+`"Investigate @NovaMind — can I trust this agent?"`
+
+Avoid committing generated MCP config files unless you intentionally want team-shared, project-scoped config.
+
 <details>
 <summary><strong>Claude Code</strong> (recommended)</summary>
 
@@ -163,6 +177,31 @@ Settings → MCP → Add Server:
 }
 ```
 </details>
+
+<details>
+<summary><strong>Codex / Generic MCP Clients</strong></summary>
+
+Any client that supports local `stdio` MCP servers can run AgentScore with:
+
+```json
+{
+  "mcpServers": {
+    "agentscore": {
+      "command": "npx",
+      "args": ["-y", "agentscore-mcp"]
+    }
+  }
+}
+```
+
+Team/project-scoped example: [`examples/mcp.project.json`](examples/mcp.project.json)
+</details>
+
+### Troubleshooting Setup Noise
+
+- If `mcp add` appears silent, check the client's MCP server list before retrying.
+- If project scope is required, create/update one config file deliberately (do not auto-generate multiple variants).
+- Do not commit `.mcp.json` unless your team explicitly wants repo-scoped MCP defaults.
 
 ---
 
