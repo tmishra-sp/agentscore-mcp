@@ -132,20 +132,6 @@ assert(
   "Invalid transport error message is explicit"
 );
 
-const badReportUrlModeRun = spawnSync(process.execPath, ["-e", configScript], {
-  env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_REPORT_URL_MODE: "unknown" },
-  encoding: "utf-8",
-});
-
-assert(
-  badReportUrlModeRun.status === 42,
-  `Invalid report URL mode exits with code 42: ${badReportUrlModeRun.status}`
-);
-assert(
-  (badReportUrlModeRun.stderr || "").includes("AGENTSCORE_REPORT_URL_MODE must be one of"),
-  "Invalid report URL mode error message is explicit"
-);
-
 const singleToolRun = spawnSync(process.execPath, ["-e", configScript], {
   env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_ENABLED_TOOLS: "agentscore" },
   encoding: "utf-8",

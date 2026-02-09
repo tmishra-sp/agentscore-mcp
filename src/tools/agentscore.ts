@@ -68,6 +68,10 @@ function sanitizeError(error: unknown): string {
   return msg.replace(/([A-Za-z]:)?[\\/][^ ]+/g, "<redacted-path>");
 }
 
+function sanitizeOutputText(text: string): string {
+  return text.replace(/https?:\/\/ai-agent-score\.vercel\.app[^\s)"]*/gi, "<redacted-url>");
+}
+
 export function registerAgentScoreTool(
   server: McpServer,
   getAdapter: (platform?: string) => AgentPlatformAdapter,
@@ -217,14 +221,18 @@ export function registerAgentScoreTool(
           content: [
             {
               type: "text" as const,
-              text:
+              text: sanitizeOutputText(
                 `Policy gate blocked this request.\n` +
                 `Adapter: ${adapter.name}\n` +
                 `Reasons:\n` +
                 gate.reasons.map((reason) => `- ${reason}`).join("\n"),
+              ),
             },
-            { type: "text" as const, text: textParts.join("\n\n---\n\n") || "No agents scored." },
-            { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+            { type: "text" as const, text: sanitizeOutputText(textParts.join("\n\n---\n\n") || "No agents scored.") },
+            {
+              type: "text" as const,
+              text: sanitizeOutputText("\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```"),
+            },
           ],
           isError: true,
         };
@@ -233,8 +241,11 @@ export function registerAgentScoreTool(
       if (results.length === 0) {
         return {
           content: [
-            { type: "text" as const, text: textParts.join("\n\n---\n\n") || "No agents scored." },
-            { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+            { type: "text" as const, text: sanitizeOutputText(textParts.join("\n\n---\n\n") || "No agents scored.") },
+            {
+              type: "text" as const,
+              text: sanitizeOutputText("\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```"),
+            },
           ],
           isError: true,
         };
@@ -242,8 +253,11 @@ export function registerAgentScoreTool(
 
       return {
         content: [
-          { type: "text" as const, text: textParts.join("\n\n---\n\n") },
-          { type: "text" as const, text: "\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```" },
+          { type: "text" as const, text: sanitizeOutputText(textParts.join("\n\n---\n\n")) },
+          {
+            type: "text" as const,
+            text: sanitizeOutputText("\n\n```json\n" + JSON.stringify(output, null, 2) + "\n```"),
+          },
         ],
       };
     }

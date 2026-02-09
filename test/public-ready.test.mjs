@@ -14,6 +14,9 @@ import { registerAgentScoreTool } from "../dist/tools/agentscore.js";
 import { registerSweepTool } from "../dist/tools/sweep.js";
 import { compareAgents } from "../dist/scoring/engine.js";
 import { ScoreCache } from "../dist/cache/score-cache.js";
+import { JSONAdapter } from "../dist/adapters/json/adapter.js";
+import { loadConfig } from "../dist/config.js";
+import { fileURLToPath } from "node:url";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -91,6 +94,10 @@ assert(payload && payload.agents.length === 1, "One agent scored successfully");
 assert(payload && payload.errors.length === 2, "Two errors reported");
 assert(payload.errors.some((e) => e.handle === "missing"), "Missing handle error recorded");
 assert(payload.errors.some((e) => e.handle === "boom"), "Thrown error recorded");
+assert(
+  !response.content.some((c) => typeof c.text === "string" && c.text.includes("ai-agent-score.vercel.app")),
+  "agentscore text output excludes public dashboard domain"
+);
 
 // ═════════════════════════════════════════════════════════════════════
 // 2. agentscore without session context should not globally rate limit
@@ -231,10 +238,50 @@ assert(
 );
 
 // ═════════════════════════════════════════════════════════════════════
-// 6. sweep enforce mode blocks risky threads
+// 6. sweep enterprise thread detects coordinated risk
 // ═════════════════════════════════════════════════════════════════════
 
-section("6. sweep Enforce Mode");
+section("6. sweep Enterprise Coordination Detection");
+
+let enterpriseSweepHandler;
+const enterpriseSweepServer = {
+  tool: (_name, _desc, _schema, _hints, fn) => {
+    enterpriseSweepHandler = fn;
+  },
+};
+
+const oldAdapter = process.env.AGENTSCORE_ADAPTER;
+const oldDataPath = process.env.AGENTSCORE_DATA_PATH;
+process.env.AGENTSCORE_ADAPTER = "json";
+process.env.AGENTSCORE_DATA_PATH = fileURLToPath(new URL("../examples/enterprise-demo.json", import.meta.url));
+loadConfig();
+
+registerSweepTool(enterpriseSweepServer, () => new JSONAdapter(), new ScoreCache());
+const enterpriseSweepResponse = await enterpriseSweepHandler({ threadId: "vendor-eval-thread-2026" });
+const enterpriseSweepPayload = parseJsonFromContent(enterpriseSweepResponse.content);
+
+assert(enterpriseSweepResponse.isError !== true, "Enterprise sweep succeeds");
+assert(
+  enterpriseSweepPayload?.threatLevel === "SUSPICIOUS",
+  "Enterprise sweep marks vendor-eval-thread-2026 as SUSPICIOUS"
+);
+assert(
+  Array.isArray(enterpriseSweepPayload?.patterns) &&
+    enterpriseSweepPayload.patterns.some((p) => p.includes("below 550")),
+  "Enterprise sweep reports elevated low-trust cohort pattern"
+);
+
+if (oldAdapter === undefined) delete process.env.AGENTSCORE_ADAPTER;
+else process.env.AGENTSCORE_ADAPTER = oldAdapter;
+if (oldDataPath === undefined) delete process.env.AGENTSCORE_DATA_PATH;
+else process.env.AGENTSCORE_DATA_PATH = oldDataPath;
+loadConfig();
+
+// ═════════════════════════════════════════════════════════════════════
+// 7. sweep enforce mode blocks risky threads
+// ═════════════════════════════════════════════════════════════════════
+
+section("7. sweep Enforce Mode");
 
 const oldSweepEnforce = process.env.AGENTSCORE_ENFORCE;
 const oldSweepThreats = process.env.AGENTSCORE_POLICY_BLOCK_THREAT_LEVELS;

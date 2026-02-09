@@ -27,7 +27,6 @@ export interface AgentScoreResult {
     governanceCardHtml: string;
   };
   scoredAt: string;
-  reportUrl?: string;
 }
 
 export interface ComparisonResult {
