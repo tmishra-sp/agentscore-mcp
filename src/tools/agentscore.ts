@@ -193,8 +193,11 @@ export function registerAgentScoreTool(
               ? `**Flags:** ${r.flags.join("; ")}\n\n`
               : "") +
             `**Badge URL:** ${r.badge.url}\n` +
-            `**Badge Markdown:** ${r.badge.markdown}\n` +
-            `**Report:** ${r.reportUrl ?? "Not available for this handle on the public site index."}`
+            `**Badge Markdown:** ${r.badge.markdown}\n\n` +
+            `**Governance Card (HTML):**\n` +
+            "```html\n" +
+            `${r.artifacts.governanceCardHtml}\n` +
+            "```"
         );
       }
 

@@ -57,10 +57,23 @@ export function scoreAgent(
   const badgeUrl = `https://img.shields.io/badge/${badgeLabel}`;
   const badgeMarkdown = `![AgentScore](${badgeUrl})`;
   const encodedHandle = encodeURIComponent(profile.handle);
+  const scoredAt = new Date().toISOString();
   const reportUrl =
-    config.reportUrlMode === "always" || profile.platform === "demo"
+    config.reportUrlMode === "always" ||
+    (config.reportUrlMode === "demo-only" && profile.platform === "demo")
       ? `${config.siteUrl}/agent/${encodedHandle}`
       : undefined;
+  const governanceCardHtml = buildGovernanceCardHtml({
+    profile,
+    score,
+    tier: tier.name,
+    recommendation: tier.recommendation,
+    confidence,
+    categories,
+    flags,
+    scoredAt,
+    badgeUrl,
+  });
 
   return {
     handle: profile.handle,
@@ -79,10 +92,70 @@ export function scoreAgent(
       shields: badgeMarkdown,
       text: `AgentScore: ${score}/850 (${tier.name})`,
     },
-    scoredAt: new Date().toISOString(),
-    // Public site report routes are handle-based today.
+    artifacts: {
+      governanceCardHtml,
+    },
+    scoredAt,
     reportUrl,
   };
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function buildGovernanceCardHtml(input: {
+  profile: AgentProfile;
+  score: number;
+  tier: string;
+  recommendation: string;
+  confidence: string;
+  categories: CategoryScore[];
+  flags: string[];
+  scoredAt: string;
+  badgeUrl: string;
+}): string {
+  const rows = input.categories
+    .map(
+      (c) =>
+        `<tr><td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(c.name)}</td>` +
+        `<td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">${c.score}/100</td>` +
+        `<td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">${c.weight}%</td>` +
+        `<td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(c.topSignal)}</td></tr>`
+    )
+    .join("");
+  const flags =
+    input.flags.length > 0
+      ? escapeHtml(input.flags.join("; "))
+      : "None";
+
+  return (
+    `<section style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:860px;` +
+    `border:1px solid #d1d5db;border-radius:14px;padding:16px;background:#ffffff;color:#111827;">` +
+    `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">` +
+    `<div><h2 style="margin:0 0 4px 0;font-size:20px;">Agent Trust Card</h2>` +
+    `<div style="font-size:14px;color:#4b5563;">@${escapeHtml(input.profile.handle)} | ${escapeHtml(input.profile.displayName)}</div></div>` +
+    `<img alt="AgentScore badge" src="${escapeHtml(input.badgeUrl)}" style="height:28px;" /></div>` +
+    `<p style="margin:12px 0 10px 0;font-size:14px;">` +
+    `<strong>Score:</strong> ${input.score}/850 (${escapeHtml(input.tier)}) | ` +
+    `<strong>Recommendation:</strong> ${escapeHtml(input.recommendation)} | ` +
+    `<strong>Confidence:</strong> ${escapeHtml(input.confidence)}</p>` +
+    `<table style="width:100%;border-collapse:collapse;font-size:13px;">` +
+    `<thead><tr>` +
+    `<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #d1d5db;">Dimension</th>` +
+    `<th style="text-align:right;padding:6px 8px;border-bottom:2px solid #d1d5db;">Score</th>` +
+    `<th style="text-align:right;padding:6px 8px;border-bottom:2px solid #d1d5db;">Weight</th>` +
+    `<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #d1d5db;">Top Signal</th>` +
+    `</tr></thead><tbody>${rows}</tbody></table>` +
+    `<p style="margin:10px 0 0 0;font-size:13px;"><strong>Flags:</strong> ${flags}</p>` +
+    `<p style="margin:6px 0 0 0;font-size:12px;color:#6b7280;">Scored at ${escapeHtml(input.scoredAt)}.</p>` +
+    `</section>`
+  );
 }
 
 function collectFlags(categories: CategoryScore[], ctx: ScoringContext): string[] {

@@ -116,6 +116,16 @@ assert(
   nonDemoResult.badge.markdown === `![AgentScore](${nonDemoResult.badge.url})`,
   "badge.markdown wraps badge.url"
 );
+assert(
+  typeof nonDemoResult.artifacts.governanceCardHtml === "string" &&
+    nonDemoResult.artifacts.governanceCardHtml.includes("<section"),
+  "governanceCardHtml is generated"
+);
+
+delete process.env.AGENTSCORE_REPORT_URL_MODE;
+loadConfig();
+const defaultModeResult = scoreAgent(enterpriseProfile, [], []);
+assert(defaultModeResult.reportUrl === undefined, "reportUrl default mode is none");
 
 process.env.AGENTSCORE_REPORT_URL_MODE = "always";
 loadConfig();
