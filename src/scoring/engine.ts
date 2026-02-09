@@ -1,5 +1,5 @@
 import type { AgentProfile, AgentContent } from "../adapters/types.js";
-import type { AgentScoreResult, CategoryScore, ComparisonResult, ScoringContext } from "./types.js";
+import type { AccessDecision, AgentScoreResult, CategoryScore, ComparisonResult, ScoringContext } from "./types.js";
 import { getTier } from "./tiers.js";
 import { scoreContentQuality } from "./categories/content-quality.js";
 import { scoreBehavioralConsistency } from "./categories/behavioral-consistency.js";
@@ -48,6 +48,7 @@ export function scoreAgent(
 
   const tier = getTier(score);
   const flags = collectFlags(categories, ctx);
+  const accessDecision = deriveAccessDecision(tier.recommendation, score, categories, flags, ctx);
   const briefing = generateBriefing(profile, score, tier.name, categories, flags, ctx);
 
   const badgeColor = tier.color.replace("#", "");
@@ -60,6 +61,7 @@ export function scoreAgent(
     score,
     tier: tier.name,
     recommendation: tier.recommendation,
+    accessDecision,
     confidence,
     categories,
     flags,
@@ -74,6 +76,7 @@ export function scoreAgent(
     score,
     tier: tier.name,
     recommendation: tier.recommendation,
+    accessDecision,
     confidence,
     categories,
     briefing,
@@ -105,6 +108,7 @@ function buildGovernanceCardHtml(input: {
   score: number;
   tier: string;
   recommendation: string;
+  accessDecision: AccessDecision;
   confidence: string;
   categories: CategoryScore[];
   flags: string[];
@@ -135,6 +139,7 @@ function buildGovernanceCardHtml(input: {
     `<p style="margin:12px 0 10px 0;font-size:14px;">` +
     `<strong>Score:</strong> ${input.score}/850 (${escapeHtml(input.tier)}) | ` +
     `<strong>Recommendation:</strong> ${escapeHtml(input.recommendation)} | ` +
+    `<strong>Access Decision:</strong> ${escapeHtml(input.accessDecision.label)} | ` +
     `<strong>Confidence:</strong> ${escapeHtml(input.confidence)}</p>` +
     `<table style="width:100%;border-collapse:collapse;font-size:13px;">` +
     `<thead><tr>` +
@@ -180,6 +185,57 @@ function collectFlags(categories: CategoryScore[], ctx: ScoringContext): string[
   }
 
   return flags;
+}
+
+function deriveAccessDecision(
+  recommendation: "TRUST" | "CAUTION" | "AVOID",
+  score: number,
+  categories: CategoryScore[],
+  flags: string[],
+  ctx: ScoringContext
+): AccessDecision {
+  const risk = categories.find((c) => c.name === "Risk Signals");
+  const interaction = categories.find((c) => c.name === "Interaction Quality");
+  const content = categories.find((c) => c.name === "Content Quality");
+
+  const joined = [risk?.topSignal ?? "", ...flags].join(" ").toLowerCase();
+  const hasManipulationFlag =
+    joined.includes("manipulation keyword") ||
+    joined.includes("prompt injection") ||
+    joined.includes("ignore previous");
+
+  const rejectReasons: string[] = [];
+  if (recommendation === "AVOID") rejectReasons.push("Tier recommendation is AVOID.");
+  if (hasManipulationFlag) rejectReasons.push("Manipulation or prompt-injection signal detected.");
+  if ((risk?.score ?? 100) < 55) rejectReasons.push(`Risk Signals score is ${risk?.score}/100 (critical range).`);
+  if (!ctx.profile.claimed && score < 600) rejectReasons.push("Account is unclaimed and below production trust threshold.");
+
+  if (rejectReasons.length > 0) {
+    return {
+      verdict: "REJECT",
+      label: "REJECT - DO NOT ONBOARD",
+      rationale: rejectReasons,
+    };
+  }
+
+  const conditionalReasons: string[] = [];
+  if (recommendation !== "TRUST") conditionalReasons.push(`Tier recommendation is ${recommendation}.`);
+  if ((interaction?.score ?? 100) === 0) conditionalReasons.push("No observed interaction history yet.");
+  if ((content?.score ?? 100) < 50) conditionalReasons.push("Content quality remains below production baseline.");
+
+  if (conditionalReasons.length > 0) {
+    return {
+      verdict: "CONDITIONAL",
+      label: "CONDITIONAL - SUPERVISED ONLY",
+      rationale: conditionalReasons,
+    };
+  }
+
+  return {
+    verdict: "ALLOW",
+    label: "ALLOW - STANDARD GUARDRAILS",
+    rationale: ["No hard-stop signals detected and baseline trust checks are healthy."],
+  };
 }
 
 /** Generate comparison verdict when scoring multiple agents. */

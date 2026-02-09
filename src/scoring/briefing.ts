@@ -53,7 +53,7 @@ export function generateBriefing(
     if (flags.length > 0) {
       sentences.push(flags.slice(0, 2).join(". ") + ".");
     }
-    sentences.push("Exercise caution.");
+    sentences.push(buildPoorTierDecision(flags, categories));
   } else {
     // Critical
     sentences.push(buildCriticalOpener(flags));
@@ -157,4 +157,18 @@ function buildCriticalEvidence(
   }
 
   return parts.length > 0 ? parts.join(". ") + "." : "Subject fails multiple trust indicators.";
+}
+
+function buildPoorTierDecision(flags: string[], categories: CategoryScore[]): string {
+  const risk = categories.find((c) => c.name === "Risk Signals");
+  const text = [risk?.topSignal ?? "", ...flags].join(" ").toLowerCase();
+  const hasHardStop =
+    text.includes("manipulation keyword") ||
+    text.includes("prompt injection") ||
+    text.includes("account not claimed");
+
+  if (hasHardStop || (risk?.score ?? 100) < 55) {
+    return "Do not onboard without remediation and re-score.";
+  }
+  return "Exercise caution.";
 }

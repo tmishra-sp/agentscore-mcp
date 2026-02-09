@@ -12,7 +12,7 @@
 
 import { registerAgentScoreTool } from "../dist/tools/agentscore.js";
 import { registerSweepTool } from "../dist/tools/sweep.js";
-import { compareAgents } from "../dist/scoring/engine.js";
+import { compareAgents, scoreAgent } from "../dist/scoring/engine.js";
 import { ScoreCache } from "../dist/cache/score-cache.js";
 import { JSONAdapter } from "../dist/adapters/json/adapter.js";
 import { loadConfig } from "../dist/config.js";
@@ -269,6 +269,28 @@ assert(
   Array.isArray(enterpriseSweepPayload?.patterns) &&
     enterpriseSweepPayload.patterns.some((p) => p.includes("below 550")),
   "Enterprise sweep reports elevated low-trust cohort pattern"
+);
+
+section("6b. Access Decision Consistency");
+
+const enterpriseAdapter = new JSONAdapter();
+const claimsProfile = await enterpriseAdapter.fetchProfile("claims-assist-v3");
+const claimsContent = await enterpriseAdapter.fetchContent("claims-assist-v3");
+const claimsInteractions = await enterpriseAdapter.fetchInteractions("claims-assist-v3");
+const claimsResult = scoreAgent(claimsProfile, claimsContent, claimsInteractions);
+
+const quickProfile = await enterpriseAdapter.fetchProfile("quickquote-express");
+const quickContent = await enterpriseAdapter.fetchContent("quickquote-express");
+const quickInteractions = await enterpriseAdapter.fetchInteractions("quickquote-express");
+const quickResult = scoreAgent(quickProfile, quickContent, quickInteractions);
+
+assert(
+  claimsResult.accessDecision.verdict === "CONDITIONAL",
+  "claims-assist-v3 remains CONDITIONAL for supervised rollout"
+);
+assert(
+  quickResult.accessDecision.verdict === "REJECT",
+  "quickquote-express is marked REJECT when manipulation/risk signals are present"
 );
 
 if (oldAdapter === undefined) delete process.env.AGENTSCORE_ADAPTER;
