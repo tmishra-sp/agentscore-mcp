@@ -1,6 +1,6 @@
 {
   "name": "agentscore-mcp",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Trust scoring for AI agents. Investigate, verify, and compare agent trustworthiness through MCP.",
   "author": "Tripti Mishra",
   "license": "MIT",
