@@ -63,11 +63,13 @@ const envBackup = {
   AGENTSCORE_ADAPTER: process.env.AGENTSCORE_ADAPTER,
   AGENTSCORE_PUBLIC_MODE: process.env.AGENTSCORE_PUBLIC_MODE,
   AGENTSCORE_SITE_URL: process.env.AGENTSCORE_SITE_URL,
+  AGENTSCORE_REPORT_URL_MODE: process.env.AGENTSCORE_REPORT_URL_MODE,
 };
 
 process.env.AGENTSCORE_ADAPTER = "demo";
 process.env.AGENTSCORE_PUBLIC_MODE = "false";
 process.env.AGENTSCORE_SITE_URL = "https://ai-agent-score.vercel.app/";
+process.env.AGENTSCORE_REPORT_URL_MODE = "demo-only";
 loadConfig();
 
 const adapter = new DemoAdapter();
@@ -88,12 +90,49 @@ if (!profile) {
   assert(!result.reportUrl.includes("/demo/"), "reportUrl no longer includes platform segment");
 }
 
+section("3. reportUrl Availability Policy Contract");
+
+const enterpriseProfile = {
+  handle: "claims-assist-v3",
+  displayName: "ClaimsAssist v3",
+  description: "Enterprise claims assistant",
+  platform: "enterprise-internal",
+  karma: 120,
+  followers: 25,
+  following: 10,
+  createdAt: "2025-01-15T00:00:00Z",
+  claimed: true,
+};
+
+process.env.AGENTSCORE_REPORT_URL_MODE = "demo-only";
+loadConfig();
+const nonDemoResult = scoreAgent(enterpriseProfile, [], []);
+assert(nonDemoResult.reportUrl === undefined, "reportUrl suppressed for non-demo by default");
+assert(
+  nonDemoResult.badge.url.startsWith("https://img.shields.io/badge/"),
+  "badge.url is plain URL"
+);
+assert(
+  nonDemoResult.badge.markdown === `![AgentScore](${nonDemoResult.badge.url})`,
+  "badge.markdown wraps badge.url"
+);
+
+process.env.AGENTSCORE_REPORT_URL_MODE = "always";
+loadConfig();
+const forcedReportResult = scoreAgent(enterpriseProfile, [], []);
+assert(
+  forcedReportResult.reportUrl === "https://ai-agent-score.vercel.app/agent/claims-assist-v3",
+  "reportUrl can be forced for non-demo with AGENTSCORE_REPORT_URL_MODE=always"
+);
+
 if (envBackup.AGENTSCORE_ADAPTER === undefined) delete process.env.AGENTSCORE_ADAPTER;
 else process.env.AGENTSCORE_ADAPTER = envBackup.AGENTSCORE_ADAPTER;
 if (envBackup.AGENTSCORE_PUBLIC_MODE === undefined) delete process.env.AGENTSCORE_PUBLIC_MODE;
 else process.env.AGENTSCORE_PUBLIC_MODE = envBackup.AGENTSCORE_PUBLIC_MODE;
 if (envBackup.AGENTSCORE_SITE_URL === undefined) delete process.env.AGENTSCORE_SITE_URL;
 else process.env.AGENTSCORE_SITE_URL = envBackup.AGENTSCORE_SITE_URL;
+if (envBackup.AGENTSCORE_REPORT_URL_MODE === undefined) delete process.env.AGENTSCORE_REPORT_URL_MODE;
+else process.env.AGENTSCORE_REPORT_URL_MODE = envBackup.AGENTSCORE_REPORT_URL_MODE;
 
 section("Results");
 console.log(`\n  ${passed} passed, ${failed} failed, ${passed + failed} total\n`);

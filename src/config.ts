@@ -4,6 +4,7 @@ export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
   transport: "stdio" | "http";
   enabledTools: Array<"agentscore" | "sweep">;
+  reportUrlMode: "always" | "demo-only";
   moltbookApiKey: string;
   githubToken: string;
   dataPath: string;
@@ -23,6 +24,7 @@ let _config: Config | null = null;
 const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 const TRANSPORTS: Config["transport"][] = ["stdio", "http"];
 const TOOLS: Config["enabledTools"] = ["agentscore", "sweep"];
+const REPORT_URL_MODES: Config["reportUrlMode"][] = ["always", "demo-only"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
@@ -37,6 +39,8 @@ export function loadConfig(): Config {
   const transport = resolvedTransport as Config["transport"];
   const rawAdapter = (process.env.AGENTSCORE_ADAPTER || "").trim();
   const resolvedAdapter = rawAdapter || "demo";
+  const rawReportUrlMode = (process.env.AGENTSCORE_REPORT_URL_MODE || "").trim().toLowerCase();
+  const resolvedReportUrlMode = rawReportUrlMode || "demo-only";
 
   if (publicMode && !rawAdapter) {
     throw new Error(
@@ -50,6 +54,14 @@ export function loadConfig(): Config {
     );
   }
   const adapter = resolvedAdapter as Config["adapter"];
+
+  if (!REPORT_URL_MODES.includes(resolvedReportUrlMode as Config["reportUrlMode"])) {
+    throw new Error(
+      `AGENTSCORE_REPORT_URL_MODE must be one of: ${REPORT_URL_MODES.join(", ")}. ` +
+      `Received: "${resolvedReportUrlMode || "<empty>"}".`
+    );
+  }
+  const reportUrlMode = resolvedReportUrlMode as Config["reportUrlMode"];
 
   if (publicMode && adapter === "demo") {
     throw new Error(
@@ -131,6 +143,7 @@ export function loadConfig(): Config {
     adapter,
     transport,
     enabledTools,
+    reportUrlMode,
     moltbookApiKey: process.env.MOLTBOOK_API_KEY || "",
     githubToken: process.env.GITHUB_TOKEN || "",
     dataPath,

@@ -54,7 +54,13 @@ export function scoreAgent(
   const config = getConfig();
   const badgeColor = tier.color.replace("#", "");
   const badgeLabel = `AgentScore-${score}%2F850-${badgeColor}`;
+  const badgeUrl = `https://img.shields.io/badge/${badgeLabel}`;
+  const badgeMarkdown = `![AgentScore](${badgeUrl})`;
   const encodedHandle = encodeURIComponent(profile.handle);
+  const reportUrl =
+    config.reportUrlMode === "always" || profile.platform === "demo"
+      ? `${config.siteUrl}/agent/${encodedHandle}`
+      : undefined;
 
   return {
     handle: profile.handle,
@@ -68,12 +74,14 @@ export function scoreAgent(
     briefing,
     flags,
     badge: {
-      shields: `![AgentScore](https://img.shields.io/badge/${badgeLabel})`,
+      url: badgeUrl,
+      markdown: badgeMarkdown,
+      shields: badgeMarkdown,
       text: `AgentScore: ${score}/850 (${tier.name})`,
     },
     scoredAt: new Date().toISOString(),
     // Public site report routes are handle-based today.
-    reportUrl: `${config.siteUrl}/agent/${encodedHandle}`,
+    reportUrl,
   };
 }
 
