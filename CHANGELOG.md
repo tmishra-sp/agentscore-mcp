@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-02-09
+
+### Changed
+- Added explicit `accessDecision` output to scored agents with clear deployment intent:
+  - `ALLOW - STANDARD GUARDRAILS`
+  - `CONDITIONAL - SUPERVISED ONLY`
+  - `REJECT - DO NOT ONBOARD`
+- Aligned high-stakes output narratives with risk signals so hard-stop profiles are consistently marked as reject.
+- Kept MCP response noise low by rendering access decision as a concise one-line summary.
+
+### Tests
+- Added enterprise regression coverage to ensure:
+  - `@claims-assist-v3` remains `CONDITIONAL`
+  - `@quickquote-express` is `REJECT` when manipulation and severe risk signals are present.
+
 ## [1.0.7] - 2026-02-09
 
 ### Changed
