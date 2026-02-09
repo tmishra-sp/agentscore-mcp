@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-02-09
+
+### Changed
+- Removed public dashboard URL coupling from score generation and config:
+  - dropped `reportUrl` from score output payloads
+  - removed `AGENTSCORE_SITE_URL` and `AGENTSCORE_REPORT_URL_MODE`
+- MCP `agentscore` responses now standardize on:
+  - trust badge URL/markdown
+  - governance card HTML artifact
+- Added response-level URL sanitization guard to redact accidental `ai-agent-score.vercel.app` links in tool text output.
+- Strengthened `sweep` enterprise coordination detection for low-trust cohorts and clustered timing patterns.
+- Updated README, launch kit docs, and public contract tests to align with the no-dashboard-link output contract.
+
 ## [1.0.6] - 2026-02-09
 
 ### Added
