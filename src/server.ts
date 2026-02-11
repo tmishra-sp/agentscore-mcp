@@ -25,7 +25,7 @@ function buildAdapterResolver(config: ReturnType<typeof loadConfig>): (platform?
   if (config.adapter === "demo") {
     adapters.demo = new DemoAdapter();
     console.error("[agentscore] Using built-in demo agents — zero config required.");
-    console.error("[agentscore] Try: investigate @NovaMind or sweep thread demo-thread-001.");
+    console.error("[agentscore] Try: investigate @claims-assist-v3 or sweep thread vendor-eval-thread-2026.");
     console.error("[agentscore] Set AGENTSCORE_ADAPTER=json or =moltbook for real data.");
   } else if (config.adapter === "json") {
     adapters.json = new JSONAdapter();
