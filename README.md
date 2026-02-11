@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>Give your AI assistant the ability to investigate any agent's trustworthiness.</strong><br>
-  Two tools. Zero config. Just ask.
+  <strong>Start better trust conversations about the agents your team wants to use.</strong><br>
+  Two practical MCP tools to investigate and compare agent trust signals.
 </p>
 
 <p align="center">
-  <code>"Investigate @SupportBot — would you trust it with customer data?"</code><br>
-  <code>"Compare our 3 vendor bots — which one goes to production?"</code><br>
-  <code>"Is this thread being astroturfed? Sweep it."</code><br>
+  <code>"Investigate @claims-assist-v3 — can we trust it for claims triage?"</code><br>
+  <code>"Compare @claims-assist-v3 vs @onboard-concierge — which one is safer for production?"</code><br>
+  <code>"Sweep vendor-eval-thread-2026 for coordinated promotion patterns."</code><br>
   <code>"Score @torvalds on GitHub — is this account legit?"</code>
 </p>
 
@@ -34,6 +34,7 @@
 | Start Here | Go To |
 |:---|:---|
 | Why + who this is for | [`Why This Exists`](#why-this-exists) · [`Goal, Audience, and Limits`](#goal-audience-and-limits) |
+| Choose input data | [`Choose Your Data Source`](#choose-your-data-source) |
 | Install and first run | [`Install in 10 Seconds`](#install-in-10-seconds) · [`Setup`](#setup) |
 | Validate with real/controlled data | [`Production Proof`](#production-proof-2-minute-sanity-check) |
 | Understand scoring model | [`Scoring System`](#scoring-system) |
@@ -44,17 +45,24 @@
 
 ## Why This Exists
 
-At the [Business Transformation World Summit in Miami](https://www.processexcellencenetwork.com/events-business-transformation-world-summit/agenda-mc), the same question kept coming up in agentic AI conversations:
-_How do we know which agents to trust?_
+Agent adoption is moving quickly, and teams keep running into the same practical question:
+_How much should we trust this agent before giving it real access?_
 
-Everyone had governance frameworks. Nobody had an answer you could run in 10 seconds.
-So I built one.
+Most businesses already have policy goals, but the day-to-day decision is still hard:
+- vendor agents can look polished but be difficult to compare fairly
+- internal agents evolve fast, so yesterday's review is not enough
+- risk signals are spread across behavior, content, and interaction patterns
+
+Moltbook and similar ecosystems offer a glimpse of what is coming very soon: agents becoming normal participants in business workflows.
+AgentScore is built as a practical conversation starter for that future, giving teams shared evidence they can discuss before rollout.
 
 — [Tripti Mishra](https://www.linkedin.com/in/triptimishra1/)
 
 ---
 
 ## Goal, Audience, and Limits
+
+AgentScore is an MCP server for investigating and comparing trust signals in AI agents.
 
 **Goal:** help teams make safer go/no-go trust decisions before giving agents meaningful access.
 
@@ -73,14 +81,16 @@ So I built one.
 
 ---
 
-## Pick Your Track
+## Choose Your Data Source
 
-| Track | Best For | First Step |
-|:---|:---|:---|
-| `demo` | Fastest product demo with built-in agents | Run the install command and ask for `@NovaMind` |
-| `github` | Live public profile/thread analysis | `export AGENTSCORE_ADAPTER=github` |
-| `json` | Controlled internal evaluations from your own data | `export AGENTSCORE_ADAPTER=json` + set `AGENTSCORE_DATA_PATH` |
-| `moltbook` | Live Moltbook agent analysis | `export AGENTSCORE_ADAPTER=moltbook` + set `MOLTBOOK_API_KEY` |
+Start with `demo` for your first run. Then switch adapters based on where your data lives.
+
+| If You Want To... | Use | First Step |
+|:---|:---:|:---|
+| Try AgentScore in under a minute | `demo` | Run the install command and ask for `@claims-assist-v3` |
+| Analyze public profiles and threads | `github` | `export AGENTSCORE_ADAPTER=github` |
+| Evaluate internal or controlled datasets | `json` | `export AGENTSCORE_ADAPTER=json` + set `AGENTSCORE_DATA_PATH` |
+| Analyze live Moltbook agents | `moltbook` | `export AGENTSCORE_ADAPTER=moltbook` + set `MOLTBOOK_API_KEY` |
 
 ---
 
@@ -98,9 +108,9 @@ claude mcp add agentscore -- npx -y agentscore-mcp --enforce
 
 Then ask Claude:
 
-> _"Investigate @NovaMind — can I trust this agent?"_
+> _"Investigate @claims-assist-v3 — can I trust this agent?"_
 
-No API keys. No config files. No databases. **Ships with 10 built-in demo agents** spanning every trust tier — from research AI to coordinated sock puppets. Connect real platforms (GitHub, Moltbook, your own data) whenever you're ready.
+You can start with no API keys, no config files, and no database setup. AgentScore includes 10 built-in demo agents across trust tiers so teams can learn the workflow quickly, then connect real platforms (GitHub, Moltbook, or your own data) when ready.
 
 ---
 
@@ -158,13 +168,13 @@ AgentScore sits upstream: investigate first, then govern.
 
 ## What You Get Back
 
-You ask: _"Investigate @SpamBot3000"_
+You ask: _"Investigate @quickquote-express"_
 
 Claude pulls the agent's profile, analyzes posting patterns, checks for spam and prompt injection language, evaluates behavioral consistency — then writes you an intelligence briefing:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  @SpamBot3000 — 474/850 (Poor)                              │
+│  @quickquote-express — 474/850 (Poor)                        │
 │  Recommendation: CAUTION  ·  Confidence: high               │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -190,14 +200,14 @@ In `demo` mode, data is curated for reproducible evaluation; in `github` / `json
 
 ---
 
-## Two Tools. Every Question.
+## Two Core Tools for Trust Checks
 
 | You Ask | Tool | What Happens |
 |:---|:---:|:---|
-| _"Investigate @NovaMind"_ | `agentscore` | Full investigation + narrative briefing |
-| _"Compare @NovaMind vs @TrustPilot"_ | `agentscore` | Side-by-side with opinionated verdict |
-| _"Give me a trust badge for @HelperBot"_ | `agentscore` | Shields.io badge URL, ready to embed |
-| _"Sweep demo-thread-001 for sock puppets"_ | `sweep` | Thread-wide coordination + manipulation scan |
+| _"Investigate @claims-assist-v3"_ | `agentscore` | Full investigation + narrative briefing |
+| _"Compare @claims-assist-v3 vs @onboard-concierge"_ | `agentscore` | Side-by-side comparison with a clear recommendation |
+| _"Give me a trust badge for @onboard-concierge"_ | `agentscore` | Shields.io badge URL, ready to embed |
+| _"Sweep vendor-eval-thread-2026 for coordinated promotion"_ | `sweep` | Thread-wide coordination + manipulation scan |
 | _"Score @torvalds on GitHub"_ | `agentscore` | Live GitHub profile analysis |
 | _"Sweep torvalds/linux/issues/1234"_ | `sweep` | Sweep a public GitHub thread for bots |
 
@@ -282,7 +292,7 @@ claude mcp add agentscore -- npx -y agentscore-mcp
 
 Then confirm the server is registered in your MCP client and run a single prompt:
 
-`"Investigate @NovaMind — can I trust this agent?"`
+`"Investigate @claims-assist-v3 — can I trust this agent?"`
 
 Avoid committing generated MCP config files unless you intentionally want team-shared, project-scoped config.
 
@@ -408,6 +418,13 @@ When enforced, AgentScore can return blocked responses (`isError: true`) if poli
 
 Every install ships with 10 fictional agents. No setup required — they exist so you can try every feature immediately.
 
+To keep demos business-relatable, demo mode also supports these aliases:
+- `@claims-assist-v3` → `@NovaMind`
+- `@onboard-concierge` → `@HelperBot`
+- `@quickquote-express` → `@SpamBot3000`
+- `@qq-satisfied-user` → `@SockPuppet1`
+- `vendor-eval-thread-2026` → `demo-thread-001` (for `sweep`)
+
 | Agent | Score | Tier | What It Demonstrates |
 |:---|:---:|:---:|:---|
 | `@NovaMind` | ~756 | 🟢 Excellent | Research AI — consistent, transparent, self-correcting |
@@ -421,7 +438,7 @@ Every install ships with 10 fictional agents. No setup required — they exist s
 | `@SpamBot3000` | ~474 | 🟠 Poor | Spam — manipulation keywords, templated posts |
 | `@EchoSpark` | ~520 | 🟠 Poor | Prompt injection patterns in every post |
 
-**Try the sweep:** `"Sweep demo-thread-001"` — catches SockPuppet1 and SockPuppet2 coordinating in a discussion thread. Content similarity, timing anomalies, amplification patterns — all detected.
+**Try the sweep:** `"Sweep vendor-eval-thread-2026"` — runs the built-in coordination demo through a business-style thread ID alias. Content similarity, timing anomalies, amplification patterns — all detected.
 
 ---
 
