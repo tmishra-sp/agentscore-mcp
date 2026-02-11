@@ -44,11 +44,12 @@
 
 ## Why This Exists
 
-At the [Business Transformation World Summit in Miami](https://www.processexcellencenetwork.com/events-business-transformation-world-summit/agenda-mc), the same question kept coming up in agentic AI conversations:
-_How do we know which agents to trust?_
+As more teams adopt agents, the same practical problems keep showing up:
+_Which agents are safe to use, which ones need review, and how do we compare them consistently?_
 
-Everyone had governance frameworks. Nobody had an answer you could run in 10 seconds.
-So I built one.
+Businesses are dealing with noisy signals, limited visibility, and real risk when agents get access to customers, code, or internal systems.
+Moltbook and similar platforms gave a clear glimpse of where this is heading: agents are likely to become part of day-to-day operations, so trust checks need to be fast, repeatable, and usable by real teams.
+That is why I built AgentScore.
 
 — [Tripti Mishra](https://www.linkedin.com/in/triptimishra1/)
 
