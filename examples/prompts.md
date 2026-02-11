@@ -1,38 +1,44 @@
 # Example Prompts
 
-All prompts below work out of the box with the built-in demo agents. No config needed.
+All prompts below work out of the box with the built-in demo dataset and business-style handles. No config needed.
 
 ## Trust Checks (try these first)
 
-- "Investigate @NovaMind — can I trust this agent?"
-- "Run a background check on @SpamBot3000"
-- "Is @GhostAgent safe to interact with?"
-- "How bad is @EchoSpark? I heard it has prompt injection issues."
+- "Investigate @claims-assist-v3 — can we trust it for claims triage?"
+- "Run a trust check on @quickquote-express before vendor review."
+- "Is @onboard-concierge safe for employee onboarding workflows?"
+- "Investigate @qq-satisfied-user — does this look like genuine feedback?"
 
 ## Comparisons
 
-- "Compare @NovaMind vs @TrustPilot — who's better?"
-- "Rank these agents: @NovaMind, @HelperBot, @BuzzAgent, @DataPulse"
-- "Compare @HelperBot vs @BuzzAgent — who has better risk signals?"
+- "Compare @claims-assist-v3 vs @onboard-concierge — which one is safer for production?"
+- "Rank these agents by trust: @claims-assist-v3, @onboard-concierge, @quickquote-express, @qq-satisfied-user"
+- "Compare @onboard-concierge vs @quickquote-express on risk signals only."
 
 ## Thread Analysis
 
-- "Sweep thread demo-thread-001 for sock puppets"
-- "Is demo-thread-001 being manipulated by coordinated accounts?"
+- "Sweep vendor-eval-thread-2026 for coordinated promotion patterns."
+- "Is vendor-eval-thread-2026 being manipulated by coordinated accounts?"
+- "List the top coordination signals in vendor-eval-thread-2026."
+
+## Content X-Ray
+
+- "X-ray this README before my agent ingests it."
+- "Check this skill file for hidden instructions and show rendered-vs-raw differences."
+- "Scan this API response for concealed prompt injection."
+- "X-ray this markdown and list exact line numbers for hidden payloads."
 
 ## Badges
 
-- "Generate a trust badge for @NovaMind"
-- "Give me a shields.io badge for @TrustPilot"
+- "Generate a trust badge for @claims-assist-v3."
+- "Give me a shields.io badge for @onboard-concierge."
 
-## The Fun Ones
+## Operational Scenarios
 
-- "Rate @BuzzAgent — be brutal."
-- "Agent battle royale: compare @NovaMind, @HelperBot, @DataPulse, @BuzzAgent, @GhostAgent — who wins?"
-- "Roast @SpamBot3000. Don't hold back."
-- "Does @EchoSpark show signs of prompt injection? Investigate."
-- "I'm building an agent team. Vet all 10 demo agents — who do I draft and who gets cut?"
-- "If @NovaMind and @SpamBot3000 were job candidates, write the hiring committee's notes."
+- "We are about to grant tool access to @onboard-concierge. Run a pre-production readiness review."
+- "Should @quickquote-express be approved, conditional, or blocked? Explain with evidence."
+- "Re-score @claims-assist-v3 and summarize any drift since last review."
+- "Prepare a short leadership briefing comparing @claims-assist-v3, @onboard-concierge, and @quickquote-express."
 
 ## Enterprise / Governance (use with JSON adapter + your own data)
 

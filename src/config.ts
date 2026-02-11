@@ -3,7 +3,7 @@ import path from "node:path";
 export interface Config {
   adapter: "demo" | "moltbook" | "json" | "github";
   transport: "stdio" | "http";
-  enabledTools: Array<"agentscore" | "sweep">;
+  enabledTools: Array<"agentscore" | "sweep" | "xray">;
   moltbookApiKey: string;
   githubToken: string;
   dataPath: string;
@@ -21,7 +21,7 @@ export interface Config {
 let _config: Config | null = null;
 const ADAPTERS: Config["adapter"][] = ["demo", "moltbook", "json", "github"];
 const TRANSPORTS: Config["transport"][] = ["stdio", "http"];
-const TOOLS: Config["enabledTools"] = ["agentscore", "sweep"];
+const TOOLS: Config["enabledTools"] = ["agentscore", "sweep", "xray"];
 
 /** Load and validate configuration from environment variables. */
 export function loadConfig(): Config {
