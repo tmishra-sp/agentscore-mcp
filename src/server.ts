@@ -15,6 +15,7 @@ import { ScoreCache } from "./cache/score-cache.js";
 import { loadConfig } from "./config.js";
 import { registerAgentScoreTool } from "./tools/agentscore.js";
 import { registerSweepTool } from "./tools/sweep.js";
+import { registerXrayTool } from "./xray/index.js";
 import { getPolicyAuditStats, listPolicyAuditEvents, setAuditStoreMaxEntries } from "./security/audit-store.js";
 import { readPolicyConfigFromEnv } from "./security/policy.js";
 import { AGENTSCORE_VERSION } from "./version.js";
@@ -25,7 +26,7 @@ function buildAdapterResolver(config: ReturnType<typeof loadConfig>): (platform?
   if (config.adapter === "demo") {
     adapters.demo = new DemoAdapter();
     console.error("[agentscore] Using built-in demo agents — zero config required.");
-    console.error("[agentscore] Try: investigate @claims-assist-v3 or sweep thread vendor-eval-thread-2026.");
+    console.error("[agentscore] Try: investigate @claims-assist-v3, sweep vendor-eval-thread-2026, or xray content before agent use.");
     console.error("[agentscore] Set AGENTSCORE_ADAPTER=json or =moltbook for real data.");
   } else if (config.adapter === "json") {
     adapters.json = new JSONAdapter();
@@ -71,7 +72,7 @@ function buildAdapterResolver(config: ReturnType<typeof loadConfig>): (platform?
 function buildMcpServer(
   getAdapter: (platform?: string) => AgentPlatformAdapter,
   cache: ScoreCache,
-  enabledTools: Array<"agentscore" | "sweep">
+  enabledTools: Array<"agentscore" | "sweep" | "xray">
 ): McpServer {
   const server = new McpServer({
     name: "agentscore-mcp-server",
@@ -82,6 +83,9 @@ function buildMcpServer(
   }
   if (enabledTools.includes("sweep")) {
     registerSweepTool(server, getAdapter, cache);
+  }
+  if (enabledTools.includes("xray")) {
+    registerXrayTool(server);
   }
   return server;
 }

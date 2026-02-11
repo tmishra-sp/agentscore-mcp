@@ -1,6 +1,6 @@
 {
   "name": "agentscore-mcp",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "Trust scoring for AI agents. Investigate, verify, and compare agent trustworthiness through MCP.",
   "author": "Tripti Mishra",
   "license": "MIT",
@@ -36,7 +36,7 @@
     "start": "node dist/server.js",
     "start:http": "AGENTSCORE_TRANSPORT=http node dist/server.js",
     "dev": "tsx src/server.ts",
-    "test:suite": "node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs && node test/adapter-contract.test.mjs && node test/public-contract.test.mjs",
+    "test:suite": "node test/public-ready.test.mjs && node test/demo-adapter.test.mjs && node test/code-quality.test.mjs && node test/adapter-contract.test.mjs && node test/public-contract.test.mjs && node test/xray/classifier.test.mjs && node test/xray/detectors.test.mjs && node test/xray/integration.test.mjs",
     "test": "npm run build && npm run test:suite",
     "coverage": "npm run build && c8 --all --exclude='examples/**' --exclude='dist/server.js' --exclude='dist/adapters/demo/agents.js' --exclude='dist/**/*.d.ts' --exclude='dist/**/*.map' --check-coverage --lines 60 --functions 65 --branches 60 --statements 60 npm run test:suite",
     "benchmark": "npm run build && node benchmarks/run.mjs --dataset benchmarks/datasets/demo-gold.v1.json --out benchmarks/results/latest.json",

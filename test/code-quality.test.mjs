@@ -139,6 +139,13 @@ const singleToolRun = spawnSync(process.execPath, ["-e", configScript], {
 
 assert(singleToolRun.status === 0, `Single-tool allow-list loads config: ${singleToolRun.status}`);
 
+const xrayToolRun = spawnSync(process.execPath, ["-e", configScript], {
+  env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_ENABLED_TOOLS: "xray" },
+  encoding: "utf-8",
+});
+
+assert(xrayToolRun.status === 0, `xray-only allow-list loads config: ${xrayToolRun.status}`);
+
 const badToolsRun = spawnSync(process.execPath, ["-e", configScript], {
   env: { ...process.env, AGENTSCORE_ADAPTER: "demo", AGENTSCORE_ENABLED_TOOLS: "agentscore,badtool" },
   encoding: "utf-8",
