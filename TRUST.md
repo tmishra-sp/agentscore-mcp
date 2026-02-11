@@ -21,7 +21,7 @@ When optional adapters are enabled:
 
 ### Rate Limiting
 
-- Tool-level limits: `agentscore` 30/min and `sweep` 10/min per session.
+- Tool-level limits: `agentscore` 30/min, `sweep` 10/min, and `xray` 20/min per session.
 - Adapter-level throttling: Moltbook uses `AGENTSCORE_RATE_LIMIT_MS`. GitHub respects API rate limit headers and retries on 429s.
 
 ### Data Access
@@ -39,6 +39,25 @@ When optional adapters are enabled:
 - Store information about you
 - Execute arbitrary code or modify platform data
 - Phone home, collect telemetry, or track usage
+
+## xray — What It Detects and What It Doesn't
+
+### Detects
+- Hidden instructions in HTML/markdown comments
+- Invisible unicode characters (zero-width spaces, direction overrides, unicode tag characters)
+- CSS-hidden text (`display:none`, `opacity:0`, tiny font sizes, color masking, off-screen placement)
+- Encoded payloads (base64, URL encoding, HTML entities, unicode/hex escapes)
+- Instructional patterns hidden in code comments
+- Structural hiding (image alt-text, link title fields, SVG text, script tags, suspicious frontmatter fields)
+
+### Does NOT detect
+- Novel obfuscation methods not yet catalogued in detector rules
+- Image steganography in pixel data
+- Multi-file coordinated payloads requiring repository-wide correlation
+- Purely visible semantic prompt injection with no hiding technique
+
+### Zero network requests
+`xray` is fully local. Content in, findings out. Nothing is sent to external services.
 
 ### Verify It Yourself
 

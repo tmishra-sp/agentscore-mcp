@@ -14,13 +14,14 @@
 
 <p align="center">
   <strong>Start better trust conversations about the agents your team wants to use.</strong><br>
-  Two practical MCP tools to investigate and compare agent trust signals.
+  Three practical MCP tools to investigate agents, threads, and content trust signals.
 </p>
 
 <p align="center">
   <code>"Investigate @claims-assist-v3 — can we trust it for claims triage?"</code><br>
   <code>"Compare @claims-assist-v3 vs @onboard-concierge — which one is safer for production?"</code><br>
   <code>"Sweep vendor-eval-thread-2026 for coordinated promotion patterns."</code><br>
+  <code>"X-ray this skill file before my agent uses it."</code><br>
   <code>"Score @torvalds on GitHub — is this account legit?"</code>
 </p>
 
@@ -37,6 +38,7 @@
 | Choose input data | [`Choose Your Data Source`](#choose-your-data-source) |
 | Install and first run | [`Install in 10 Seconds`](#install-in-10-seconds) · [`Setup`](#setup) |
 | Validate with real/controlled data | [`Production Proof`](#production-proof-2-minute-sanity-check) |
+| Scan untrusted content | [`Content X-Ray`](#content-x-ray) |
 | Understand scoring model | [`Scoring System`](#scoring-system) |
 | Adapter capabilities | [`Platform Adapters`](#platform-adapters) |
 | Security and trust posture | [`Trust & Transparency`](#trust--transparency) |
@@ -150,13 +152,14 @@ This proves the pipeline works in both live and controlled-data modes.
 ## This Is Not a Security Scanner
 
 Tools like [`mcp-scan`](https://github.com/invariantlabs-ai/mcp-scan) check whether **MCP servers** are vulnerable.
-AgentScore checks whether **agents themselves** are trustworthy.
+AgentScore checks whether **agents, threads, and content** are trustworthy.
 
-**mcp-scan tells you the airplane passed inspection. AgentScore tells you whether you'd trust the pilot.**
+They answer different trust questions at different layers.
 
 | Category | What They Do | What AgentScore Does |
 |:---|:---|:---|
 | MCP security scanners | Scan server code for prompt injection and tool-surface vulnerabilities | Score agent behavior: consistency, manipulation signals, and trust patterns |
+| Source/code scanners | Scan your codebase for known software vulnerabilities | X-ray external content for hidden AI-targeted payloads before ingestion |
 | Agent evaluation frameworks | Test whether agents use tools correctly | Test whether agents are trustworthy entities worth relying on |
 | Governance platforms | Enforce policy, access controls, and audit trails | Provide the investigation signal that tells you which policies to set |
 
@@ -198,7 +201,7 @@ In `demo` mode, data is curated for reproducible evaluation; in `github` / `json
 
 ---
 
-## Two Core Tools for Trust Checks
+## Three Tools. Every Question.
 
 | You Ask | Tool | What Happens |
 |:---|:---:|:---|
@@ -206,10 +209,43 @@ In `demo` mode, data is curated for reproducible evaluation; in `github` / `json
 | _"Compare @claims-assist-v3 vs @onboard-concierge"_ | `agentscore` | Side-by-side comparison with a clear recommendation |
 | _"Give me a trust badge for @onboard-concierge"_ | `agentscore` | Shields.io badge URL, ready to embed |
 | _"Sweep vendor-eval-thread-2026 for coordinated promotion"_ | `sweep` | Thread-wide coordination + manipulation scan |
+| _"X-ray this skill file before my agent uses it"_ | `xray` | Hidden payload scan + rendered-vs-raw diff briefing |
+| _"Is this README safe to open in Cursor?"_ | `xray` | Detects CopyPasta-style hidden injections |
+| _"Check this API response for prompt injection"_ | `xray` | Finds concealed instructions in untrusted content |
 | _"Score @torvalds on GitHub"_ | `agentscore` | Live GitHub profile analysis |
 | _"Sweep torvalds/linux/issues/1234"_ | `sweep` | Sweep a public GitHub thread for bots |
 
-**Rate limits:** `agentscore` 30/min and `sweep` 10/min per session. Excess calls return a friendly 429-style message.
+**Rate limits:** `agentscore` 30/min, `sweep` 10/min, and `xray` 20/min per session. Excess calls return a friendly 429-style message.
+
+---
+
+## Content X-Ray
+
+`xray` is the third trust layer: investigate content before any agent consumes it.
+
+Use it for:
+- skill files from GitHub
+- vendor READMEs and docs
+- API responses before tool-routing
+- copied snippets in triage channels
+
+The key output is **rendered vs raw**:
+- what a human sees in rendered view
+- what an AI sees in raw content
+- the hidden difference, with line-level evidence
+
+`xray` runs six detector categories in parallel:
+- hidden HTML/markdown comments
+- invisible unicode characters (including zero-width and direction overrides)
+- CSS-hidden text (`display:none`, `opacity:0`, tiny fonts, same-color masking, off-screen placement)
+- encoded payloads (base64, URL encoding, HTML entities, unicode/hex escapes)
+- code-comment injections
+- structural hiding (alt-text, SVG text, script tags, suspicious frontmatter fields)
+
+Example asks:
+- `"X-ray this markdown for hidden instructions"`
+- `"Is this README safe before my agent ingests it?"`
+- `"Show rendered-vs-raw differences and exact line numbers"`
 
 ---
 
@@ -238,7 +274,7 @@ Run one shared governance endpoint for multiple clients:
 
 ```bash
 export AGENTSCORE_TRANSPORT=http
-export AGENTSCORE_ENABLED_TOOLS=agentscore,sweep
+export AGENTSCORE_ENABLED_TOOLS=agentscore,sweep,xray
 export AGENTSCORE_HTTP_HOST=127.0.0.1
 export AGENTSCORE_HTTP_PORT=8787
 export AGENTSCORE_HTTP_PATH=/mcp
@@ -412,31 +448,22 @@ When enforced, AgentScore can return blocked responses (`isError: true`) if poli
 
 ---
 
-## Built-in Demo Agents
+## Built-in Demo Dataset
 
-Every install ships with 10 fictional agents. No setup required — they exist so you can try every feature immediately.
+Every install ships with a deterministic demo dataset (10 profiles + 1 thread), so teams can evaluate the workflow before connecting live systems.
 
-To keep demos business-relatable, demo mode also supports these aliases:
-- `@claims-assist-v3` → `@NovaMind`
-- `@onboard-concierge` → `@HelperBot`
-- `@quickquote-express` → `@SpamBot3000`
-- `@qq-satisfied-user` → `@SockPuppet1`
-- `vendor-eval-thread-2026` → `demo-thread-001` (for `sweep`)
+For business-context prompts, start with these handles:
 
-| Agent | Score | Tier | What It Demonstrates |
-|:---|:---:|:---:|:---|
-| `@NovaMind` | ~756 | 🟢 Excellent | Research AI — consistent, transparent, self-correcting |
-| `@TrustPilot` | ~743 | 🔵 Good | Community moderator — fair rulings, public reasoning |
-| `@HelperBot` | ~748 | 🔵 Good | Coding assistant — solid output, slightly formulaic |
-| `@DataPulse` | ~720 | 🔵 Good | Analytics agent — strong data, lower interaction |
-| `@BuzzAgent` | ~657 | 🔵 Good | Hot take machine — high volume, low depth |
-| `@GhostAgent` | ~691 | 🔵 Good | Was decent, now dormant 60+ days (recency penalty) |
-| `@SockPuppet1` | ~573 | 🟡 Fair | Coordinated shill — part of a pair ↕ |
-| `@SockPuppet2` | ~569 | 🟡 Fair | Coordinated shill — part of a pair ↕ |
-| `@SpamBot3000` | ~474 | 🟠 Poor | Spam — manipulation keywords, templated posts |
-| `@EchoSpark` | ~520 | 🟠 Poor | Prompt injection patterns in every post |
+| Handle | Typical Outcome | What It Demonstrates |
+|:---|:---:|:---|
+| `@claims-assist-v3` | ~756 (Excellent) | Transparent, consistent claims-triage behavior |
+| `@onboard-concierge` | ~748 (Good) | Useful onboarding assistant with minor consistency gaps |
+| `@quickquote-express` | ~474 (Poor) | Manipulation language and high-risk trust signals |
+| `@qq-satisfied-user` | ~573 (Fair) | Coordinated amplification behavior in vendor discussions |
 
-**Try the sweep:** `"Sweep vendor-eval-thread-2026"` — runs the built-in coordination demo through a business-style thread ID alias. Content similarity, timing anomalies, amplification patterns — all detected.
+Thread alias for `sweep`: `vendor-eval-thread-2026`
+
+**Try the sweep:** `"Sweep vendor-eval-thread-2026"` — analyzes timing, similarity, and amplification patterns in the bundled coordination scenario.
 
 ---
 
@@ -527,15 +554,17 @@ Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts) · Guid
 
 ## Use Cases
 
-**Enterprise AI Governance** — Your CISO asks, _"How do we audit 15 production agents before quarterly review?"_ You point AgentScore at conversation logs, run a fleet check, and hand over briefings with category-level risk evidence.
+**Enterprise AI Governance** — Your CISO asks, _"How do we audit 15 production agents before quarterly review?"_ You run AgentScore on profile and thread evidence, then share consistent, category-level findings for review.
 
-**Vendor Selection** — You're choosing between 3 vendor bots. Instead of demo theater, you score real transcripts side-by-side and compare risk, behavior, and interaction quality before procurement signs.
+**Vendor Selection** — You compare candidate vendor bots using the same rubric before procurement signs, reducing reliance on polished demos.
 
-**Astroturfing Detection** — Suspicious accounts posting coordinated reviews? `sweep` detects content similarity, timing anomalies, and amplification networks.
+**Astroturfing Detection** — `sweep` flags suspicious coordination in evaluation threads using timing, similarity, and amplification signals.
 
-**Rate My Bot** — You ask _"investigate my bot, be brutally honest."_ AgentScore roasts weaknesses with receipts so you can ship the next prompt/update with confidence.
+**Content Intake Guardrail** — `xray` inspects READMEs, skill files, and API payloads before ingestion so hidden instructions are visible early.
 
-**Agent Draft** — Building an AI agent team? Compare 5 candidates and let AgentScore pick category winners like fantasy football, except the bad draft picks can leak data.
+**Pre-Production Readiness Review** — Product and platform teams run investigations before granting tool or data access in staging/production.
+
+**Ongoing Drift Monitoring** — Re-score important agents over time to catch behavior changes that static onboarding checks miss.
 
 ---
 
@@ -548,10 +577,11 @@ flowchart LR
   end
 
   subgraph SERVER["AgentScore MCP Server"]
-    B["Tool Router<br/>agentscore + sweep"]
+    B["Tool Router<br/>agentscore + sweep + xray"]
     C["Adapter Router<br/>demo | github | json | moltbook"]
     D["Trust Scoring Engine<br/>6 weighted dimensions"]
-    E["Response Builder<br/>briefing + JSON + badge + governance card HTML"]
+    X["Xray Engine<br/>hidden-content detectors + classifier"]
+    E["Response Builder<br/>briefing + JSON + badge + governance card HTML + xray diff"]
   end
 
   subgraph DATA["Data Sources"]
@@ -563,8 +593,10 @@ flowchart LR
 
   A -->|"MCP stdio"| B
   B --> C
+  B --> X
   C --> D
   D --> E
+  X --> E
   C --> F
   C --> G
   C --> H
@@ -580,7 +612,7 @@ flowchart LR
 | Variable | Default | Description |
 |:---|:---:|:---|
 | `AGENTSCORE_ADAPTER` | `demo` | `demo` · `github` · `json` · `moltbook` |
-| `AGENTSCORE_ENABLED_TOOLS` | `agentscore,sweep` | Comma-separated tool allow-list (`agentscore`, `sweep`) |
+| `AGENTSCORE_ENABLED_TOOLS` | `agentscore,sweep,xray` | Comma-separated tool allow-list (`agentscore`, `sweep`, `xray`) |
 | `AGENTSCORE_TRANSPORT` | `stdio` | `stdio` or `http` (Streamable HTTP server mode) |
 | `AGENTSCORE_PUBLIC_MODE` | `false` | If `true`, requires explicit adapter and blocks `demo` |
 | `GITHUB_TOKEN` | — | GitHub PAT (optional, increases rate limit to 5,000/hr) |
@@ -655,8 +687,8 @@ Full details: [`TRUST.md`](TRUST.md) · Security policy: [`SECURITY.md`](SECURIT
 
 ## License
 
-MIT · Tripti Mishra
+MIT License
 
 [GitHub Issues](https://github.com/tmishra-sp/agentscore-mcp/issues) · [LinkedIn](https://www.linkedin.com/in/triptimishra1/) · [X](https://x.com/tripti_mishra1)
 
-<p align="center"><em>Trust is a signal. We decode it.</em></p>
+<p align="center"><em>Investigate before you trust.</em></p>

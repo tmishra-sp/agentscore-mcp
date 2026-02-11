@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-02-11
+
+### Added
+- New `xray` MCP tool for content-layer trust checks before agent consumption.
+  - Detects hidden HTML/markdown comments, invisible unicode, CSS-hidden text, encoded payloads, code-comment injections, and structural hiding tricks.
+  - Uses a two-pass pipeline (extract hidden content, then classify instructional intent) to reduce false positives.
+  - Includes rendered-vs-raw output showing what humans see vs what AI readers see.
+- Xray fixture suite and regression coverage under `test/xray/` with:
+  - 10 true-positive attack detections
+  - 10 true-negative benign-content checks
+  - Dedicated classifier and detector unit coverage
+
+### Changed
+- README now documents a three-tool model: `agentscore`, `sweep`, and `xray`.
+- TRUST.md now includes explicit xray scope, limits, and local-only processing guarantees.
+- Tool allow-list docs updated to include `xray` (`AGENTSCORE_ENABLED_TOOLS=agentscore,sweep,xray`).
+
 ## [1.0.8] - 2026-02-09
 
 ### Changed
