@@ -56,8 +56,6 @@ Most businesses already have policy goals, but the day-to-day decision is still 
 Moltbook and similar ecosystems offer a glimpse of what is coming very soon: agents becoming normal participants in business workflows.
 AgentScore is built as a practical conversation starter for that future, giving teams shared evidence they can discuss before rollout.
 
-— [Tripti Mishra](https://www.linkedin.com/in/triptimishra1/)
-
 ---
 
 ## Goal, Audience, and Limits
