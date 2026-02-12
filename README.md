@@ -598,37 +598,60 @@ Full example: [`examples/custom-adapter.ts`](examples/custom-adapter.ts) · Guid
 
 ## Architecture
 
+One server, three tool paths:
+- `agentscore` and `sweep` share adapters and trust-policy enforcement.
+- `xray` analyzes untrusted content directly (no platform adapter required).
+
 ```mermaid
 flowchart LR
-  subgraph CLIENT["Client Layer"]
-    A["MCP Client (Claude, Cursor, Codex, others)"]
+  A["MCP Client<br/>Claude, Cursor, Codex, others"] --> B["Transport Layer<br/>stdio or Streamable HTTP"]
+  B --> C["Request Layer<br/>input validation + per-tool rate limits"]
+  C --> D["Tool Router<br/>agentscore | sweep | xray"]
+
+  subgraph TRUST["Pipeline A: Agent + Thread Trust"]
+    E["agentscore Tool"]
+    F["sweep Tool"]
+    G["Adapter Router<br/>demo | github | json | moltbook"]
+    H["Scoring Engine<br/>6 weighted trust dimensions"]
+    I["Sweep Analyzer<br/>coordination + manipulation patterns"]
+    J["Policy Gate (optional)<br/>threshold + recommendation + threat-level blocks"]
   end
 
-  subgraph SERVER["AgentScore MCP Server"]
-    B["Tool Router<br/>agentscore + sweep + xray"]
-    C["Adapter Router<br/>demo | github | json | moltbook"]
-    D["Trust Scoring Engine<br/>6 weighted dimensions"]
-    X["Xray Engine<br/>hidden-content detectors + classifier"]
-    E["Response Builder<br/>briefing + JSON + badge + governance card HTML + xray diff"]
+  subgraph XRAY["Pipeline B: Content Trust"]
+    K["xray Tool"]
+    L["Xray Engine<br/>6 detector categories (parallel) + 2-pass classifier"]
   end
 
   subgraph DATA["Data Sources"]
-    F["Built-in Demo Dataset"]
-    G["GitHub Public API"]
-    H["Local JSON Dataset"]
-    I["Moltbook API"]
+    M["Built-in Demo Dataset"]
+    N["GitHub Public API"]
+    O["Local JSON Dataset"]
+    P["Moltbook API"]
+    Q["Untrusted Content<br/>READMEs, skill files, API payloads"]
   end
 
-  A -->|"MCP stdio"| B
-  B --> C
-  B --> X
-  C --> D
   D --> E
-  X --> E
-  C --> F
-  C --> G
-  C --> H
-  C --> I
+  D --> F
+  D --> K
+
+  E --> G
+  F --> G
+  G --> H
+  G --> I
+  H --> J
+  I --> J
+
+  K --> L
+
+  G --> M
+  G --> N
+  G --> O
+  G --> P
+  Q --> L
+
+  J --> R["Response Builder<br/>briefing + JSON + badge + governance card"]
+  L --> R
+  R --> S["Client Response<br/>investigation evidence + recommendations + xray diff"]
 ```
 
 **2 runtime dependencies:** `@modelcontextprotocol/sdk` + `zod`. That's it.
