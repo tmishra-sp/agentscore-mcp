@@ -603,31 +603,31 @@ One server, three tool paths:
 - `xray` analyzes untrusted content directly (no platform adapter required).
 
 ```mermaid
-flowchart LR
-  A["MCP Client<br/>Claude, Cursor, Codex, others"] --> B["Transport Layer<br/>stdio or Streamable HTTP"]
-  B --> C["Request Layer<br/>input validation + per-tool rate limits"]
-  C --> D["Tool Router<br/>agentscore | sweep | xray"]
+flowchart TB
+  A["MCP Client"] --> B["Transport"]
+  B --> C["Guards"]
+  C --> D["Tool Router"]
 
-  subgraph TRUST["Pipeline A: Agent + Thread Trust"]
-    E["agentscore Tool"]
-    F["sweep Tool"]
-    G["Adapter Router<br/>demo | github | json | moltbook"]
-    H["Scoring Engine<br/>6 weighted trust dimensions"]
-    I["Sweep Analyzer<br/>coordination + manipulation patterns"]
-    J["Policy Gate (optional)<br/>threshold + recommendation + threat-level blocks"]
+  subgraph T["Agent + Thread Path"]
+    E["agentscore"]
+    F["sweep"]
+    G["Adapters"]
+    H["Score Engine"]
+    I["Sweep Engine"]
+    J["Policy Gate"]
   end
 
-  subgraph XRAY["Pipeline B: Content Trust"]
-    K["xray Tool"]
-    L["Xray Engine<br/>6 detector categories (parallel) + 2-pass classifier"]
+  subgraph X["Content Path"]
+    K["xray"]
+    L["Xray Engine"]
   end
 
-  subgraph DATA["Data Sources"]
-    M["Built-in Demo Dataset"]
-    N["GitHub Public API"]
-    O["Local JSON Dataset"]
-    P["Moltbook API"]
-    Q["Untrusted Content<br/>READMEs, skill files, API payloads"]
+  subgraph S["Sources"]
+    M["Demo"]
+    N["GitHub"]
+    O["JSON"]
+    P["Moltbook"]
+    Q["Untrusted Content"]
   end
 
   D --> E
@@ -641,18 +641,23 @@ flowchart LR
   H --> J
   I --> J
 
-  K --> L
-
   G --> M
   G --> N
   G --> O
   G --> P
+
+  K --> L
   Q --> L
 
-  J --> R["Response Builder<br/>briefing + JSON + badge + governance card"]
+  J --> R["Response Builder"]
   L --> R
-  R --> S["Client Response<br/>investigation evidence + recommendations + xray diff"]
+  R --> U["Client Output"]
 ```
+
+Legend:
+- `Guards`: input validation + per-tool rate limits
+- `Adapters`: `demo`, `github`, `json`, `moltbook`
+- `Xray Engine`: 6 detector categories + 2-pass classification
 
 **2 runtime dependencies:** `@modelcontextprotocol/sdk` + `zod`. That's it.
 
