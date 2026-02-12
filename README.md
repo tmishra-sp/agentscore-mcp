@@ -151,7 +151,7 @@ This proves the pipeline works in both live and controlled-data modes.
 
 ## This Is Not a Security Scanner
 
-Tools like [`mcp-scan`](https://github.com/invariantlabs-ai/mcp-scan) check whether **MCP servers** are vulnerable.
+Tools like [`agent-scan`](https://github.com/snyk/agent-scan) check whether **MCP servers** are vulnerable.
 AgentScore checks whether **agents, threads, and content** are trustworthy.
 
 They answer different trust questions at different layers.
