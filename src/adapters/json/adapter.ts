@@ -31,7 +31,7 @@ const AgentProfileSchema = z.object({
     verified: z.boolean(),
     followers: z.number(),
   }).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const JSONThreadSchema = z.object({
